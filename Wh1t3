@@ -1,0 +1,298 @@
+function light(tim,color0,color1)
+	local tweenservice = game:GetService("TweenService")
+	local info = TweenInfo.new(tim,Enum.EasingStyle.Linear)
+	for _ , light in pairs(game.Workspace.CurrentRooms:GetDescendants()) do
+		if light:IsA("Light") or light:IsA("SurfaceLight") or light:IsA("SpotLight") then
+			local target = {Color = color1}
+			local anim = tweenservice:Create(light,info,target)
+			anim:Play()
+		end
+		if light:IsA("MeshPart") and light.Material == Enum.Material.Neon  and light.Name ~= "Skybox" then
+			local target1 = {Color = color0}
+			local anim2 = tweenservice:Create(light,info,target1)
+			anim2:Play()
+		end
+	end
+end
+
+---====== Load spawner ======---
+
+local Spawner = loadstring(game:HttpGet("https://raw.githubusercontent.com/RegularVynixu/DOORS-Entity-Spawner-V2/main/init.luau"))()
+
+---====== Create entity ======---
+
+local entity = Spawner:Create({
+	Entity = {
+		Name = "Wh1t3",
+		Asset = "https://github.com/eoyoustme/Impossible/blob/main/Wh1t3.rbxm?raw=true",
+		HeightOffset = 3
+	},
+	Lights = {
+		Flicker = {
+			Enabled = false,
+			Duration = 1
+		},
+		Shatter = true,
+		Repair = false
+	},
+	Earthquake = {
+		Enabled = false
+	},
+	CameraShake = {
+		Enabled = true,
+		Range = 100,
+		Values = {1.5, 20, 0.1, 1} -- Magnitude, Roughness, FadeIn, FadeOut
+	},
+	Movement = {
+		Speed = 500,
+		Delay = 7.158,
+		Reversed = false
+	},
+	Rebounding = {
+		Enabled = true,
+		Type = "Ambush", -- "Blitz"
+		Min = 1,
+		Max = 2,
+		Delay = 0
+	},
+	Damage = {
+		Enabled = true,
+		Range = 40,
+		Amount = 125
+	},
+	Crucifixion = {
+		Enabled = true,
+		Range = 40,
+		Resist = false,
+		Break = true
+	},
+	Death = {
+		Type = "Guiding", -- "Curious"
+		Hints = {"Death", "Hints", "Go", "Here"},
+		Cause = ""
+	}
+})
+
+---====== Debug entity ======---
+
+entity:SetCallback("OnSpawned", function()
+	print("Entity has spawned")
+	local entity = workspace.Wh1t3.RushNew
+	entity.Position = Vector3.new(0, 0, 0) -- Đổi thuộc tính thành Position để dùng chung với Vector3
+	local par = workspace.Wh1t3.RushNew.Attachment.BlackTrail
+
+	par.Rate = 250002500025000 -- SỬA: Đổi thành số thường. (Lưu ý: Roblox giới hạn Rate tối đa là 25,000)
+	par.Lifetime = NumberRange.new(500, 500) -- Đúng cú pháp (hoặc viết gọn là NumberRange.new(50))
+	par.Size = NumberSequence.new(300) -- SỬA: Chỉ để 1 con số để làm kích thước cố định
+	
+	game.Lighting.MainColorCorrection.TintColor = Color3.fromRGB(255, 0, 0)
+	game.Lighting.MainColorCorrection.Contrast = 1
+	local tween = game:GetService("TweenService")
+	tween:Create(game.Lighting.MainColorCorrection, TweenInfo.new(2.5), {Contrast = 0}):Play()
+	local TweenService = game:GetService("TweenService")
+	local TW = TweenService:Create(game.Lighting.MainColorCorrection, TweenInfo.new(50),{TintColor = Color3.fromRGB(255, 255, 255)})
+	TW:Play()
+	
+	light(2,Color3.fromRGB(66, 0, 0),Color3.fromRGB(100, 0, 0))
+	
+	local CameraShaker = require(game.ReplicatedStorage.CameraShaker)
+	local camara = game.Workspace.CurrentCamera
+	local camShake = CameraShaker.new(Enum.RenderPriority.Camera.Value, function(shakeCf)
+		camara.CFrame = camara.CFrame * shakeCf
+	end)
+	camShake:Start()
+	camShake:ShakeOnce(20,10,0,4,0.2,0.2)
+end)
+
+entity:SetCallback("OnLookAt", function(lineOfSight: boolean)
+	if lineOfSight == true then
+		print("I SEE U")
+		local FPS = 5
+		local clock = tick()
+		while clock + 1 / FPS > tick() do end
+		wait()
+		clock = tick()
+	else
+		print("Player view is obstructed by something")
+	end
+end)
+
+entity:SetCallback("OnRebounding", function(startOfRebound: boolean)
+	if startOfRebound == true then
+		print("Entity has started rebounding")
+		local CameraShaker = require(game.ReplicatedStorage.CameraShaker)
+		local camara = game.Workspace.CurrentCamera
+		local camShake = CameraShaker.new(Enum.RenderPriority.Camera.Value, function(shakeCf)
+			camara.CFrame = camara.CFrame * shakeCf
+		end)
+		camShake:Start()
+		camShake:ShakeOnce(30,16.5,0.1,0.5,0.1,0.5)
+
+		local sound5 = Instance.new("Sound")
+		sound5.SoundId = "rbxassetid://99570778660066"
+		sound5.Volume = 1
+		sound5.PlaybackSpeed = 1
+		sound5.Parent = workspace
+		sound5:Play()
+	else
+		print("Entity has finished rebounding")
+	end
+end)
+
+entity:SetCallback("OnDespawning", function()
+	print("Entity is despawning")
+	---====== Load achievement giver ======---
+	local achievementGiver = loadstring(game:HttpGet("https://raw.githubusercontent.com/RegularVynixu/Utilities/main/Doors/Custom%20Achievements/Source.lua"))()
+
+	---====== Display achievement ======---
+	achievementGiver({
+		Title = "Fought A Beast And Survived.",
+		Desc = "How?",
+		Reason = "Survive WH1T3.",
+		Image = "rbxassetid://0"
+	})
+end)
+
+entity:SetCallback("OnDamagePlayer", function(newHealth: number)
+	if newHealth <= 0 then
+		print("Entity has killed the player")
+		local function playSoundSafe(soundObj, timePos, speed, volume)
+			if not soundObj or not soundObj.Parent then
+				return
+			end
+
+			soundObj:Stop()
+			soundObj.TimePosition = timePos or 0
+			soundObj.PlaybackSpeed = speed or 1
+			soundObj.Volume = volume or 1
+			soundObj:Play()
+		end
+
+		local playerGui = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+		local screenGui = Instance.new("ScreenGui")
+		screenGui.Name = "FlashOverlay"
+		screenGui.IgnoreGuiInset = true 
+		screenGui.Parent = playerGui
+
+		local frame = Instance.new("Frame")
+		frame.Size = UDim2.new(1, 0, 1, 0)
+		frame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+		frame.BackgroundTransparency = 0 -- Start invisible
+		frame.BorderSizePixel = 0
+		frame.Parent = screenGui
+
+		local cue2 = Instance.new("Sound")
+		cue2.Parent = game.Workspace
+		cue2.Name = "Spawn"
+		cue2.SoundId = "rbxassetid://109790776120081"
+		cue2.Volume = 10
+		cue2.TimePosition = 0
+		cue2.PlaybackSpeed = 1
+		cue2:Play()
+
+
+		local colors = {
+			Color3.fromRGB(0, 0, 0),
+			Color3.fromRGB(255, 0, 0),
+			Color3.fromRGB(255, 0, 0),
+			Color3.fromRGB(85, 0, 0),
+			Color3.fromRGB(170, 0, 0),
+			Color3.fromRGB(120, 120, 120)
+		}
+
+		local rebound = Instance.new("ImageLabel")
+		rebound.Image = "rbxassetid://109188770255707"
+		rebound.Size = UDim2.new(0, 600, 0, 600)
+		rebound.Position = UDim2.new(0.5, 0, 0.5, 0)
+		rebound.AnchorPoint = Vector2.new(0.5, 0.5)
+		rebound.Parent = screenGui
+		rebound.BackgroundTransparency = 1
+		rebound.ResampleMode = Enum.ResamplerMode.Pixelated
+		rebound.ImageTransparency = 0
+		rebound.ZIndex = 1000
+
+		local c = task.spawn(function()
+			while true do
+				wait(0.03)				
+				frame.BackgroundColor3 = colors[math.random(1, #colors)]
+				rebound.ImageColor3 = colors[math.random(1, #colors)]
+			end
+		end)
+
+		local TweenService = game:GetService("TweenService")
+		local rng = Random.new() 
+		local tweenInfo = TweenInfo.new(0.04, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+
+		local a = task.spawn(function()
+			while true do
+				game.TweenService:Create(rebound, tweenInfo, {
+					Position = UDim2.new(rng:NextNumber(0.15, 0.8), 0, rng:NextNumber(0.15, 0.8), 0),
+					Rotation = rng:NextNumber(-60, 30),
+
+					Size = UDim2.new(0, rng:NextNumber(500, 300), 0, rng:NextNumber(50, 700))
+				}):Play()
+
+				task.wait(0.05)
+			end
+		end)
+
+		local b = task.spawn(function()
+			while true do
+				playSoundSafe(cue2, 0.25 + math.random() / 10, math.random(85, 115) / 100, 1)
+				task.wait(0.05)
+			end
+		end)
+
+		wait(math.random(3, 4))
+
+
+		local cue25 = Instance.new("Sound")
+		cue25.Parent = game.Workspace
+		cue25.Name = "Spawn"
+		cue25.SoundId = "rbxassetid://5263560896"
+		cue25.Volume = 10
+		cue25.TimePosition = 0
+		cue25.PlaybackSpeed = 1
+		cue25:Play()
+
+		task.cancel(c)
+		task.cancel(a)
+		task.cancel(b)
+		local oldBackTween = TweenService:Create(rebound, TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+			Position = UDim2.new(0.5, 0, 0.5, 0),
+			Size = UDim2.new(0, 1500, 0, 1700),
+			Rotation = 0
+		})
+		oldBackTween:Play()
+
+		wait(0.5)
+		local cac = TweenService:Create(rebound, TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+			ImageTransparency = 1
+
+		})
+		cac:Play()
+		frame:Destroy()
+		wait(0.2)
+		cue25:Destroy()
+		wait(0.8)
+		frame:Destroy()
+		cue2:Destroy()
+	else
+		print("Entity has damaged the player")
+	end
+end)
+
+--[[
+
+DEVELOPER NOTE:
+By overwriting 'CrucifixionOverwrite' the default crucifixion callback will be replaced with your custom callback.
+
+entity:SetCallback("CrucifixionOverwrite", function()
+    print("Custom crucifixion callback")
+end)
+
+]]--
+
+---====== Run entity ======---
+
+entity:Run(true)

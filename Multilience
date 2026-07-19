@@ -1,0 +1,447 @@
+
+local TweenService = game:GetService("TweenService")
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local UserInputService = game:GetService("UserInputService") 
+
+local LocalPlayer = Players.LocalPlayer
+local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+local Humanoid = Character:WaitForChild("Humanoid")
+local HRP = Character:WaitForChild("HumanoidRootPart")
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+local Lighting = game:GetService("Lighting")
+local Debris = game:GetService("Debris")
+local UserInputService = game:GetService("UserInputService")
+
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+local player = Players.LocalPlayer
+
+local thread = nil
+
+local function GetRoom()
+	return workspace.CurrentRooms:FindFirstChild(ReplicatedStorage.GameData.LatestRoom.Value)
+end
+
+local old = workspace:FindFirstChild("Silence")
+if old then
+	old:Destroy()
+end
+
+local multilinece = "https://github.com/eoyoustme/Script/raw/main/Multimonster.rbxm"
+
+function getgithubmodeL(url)
+	if not (writefile and getcustomasset and request) then return nil end
+	local fileName = string.match(url, "([^/]+)$") or "temp_model.rbxm"
+	local response = request({Url = url, Method = "GET"})
+	if response.StatusCode ~= 200 then return nil end
+	writefile(fileName, response.Body)
+	local assetId = getcustomasset(fileName)
+	local success, result = pcall(function() return game:GetObjects(assetId)[1] end)
+	return success and result or nil
+end
+
+local Silence5 = getgithubmodeL(multilinece)
+Silence5.Name = "Silence"
+Silence5.Parent = workspace
+
+local Silence = Silence5:FindFirstChild("RushNew") or Silence5:FindFirstChildWhichIsA("BasePart")
+assert(Silence,"Not dind")
+
+local room = GetRoom()
+local entrance = room:WaitForChild("RoomEntrance")
+
+Silence.Anchored = true
+
+local startCF = entrance.CFrame * CFrame.new(0,30,-35)
+local spaw5n = entrance.CFrame * CFrame.new(0,0,-35)
+local endCF = entrance.CFrame * CFrame.new(0,2,-35)
+
+local function GetGitSound(GithubSnd, SoundName)
+	local url = GithubSnd
+	if not isfile(SoundName .. ".ogg") then
+		writefile(SoundName .. ".ogg", game:HttpGet(url))
+	end
+	local sound = Instance.new("Sound")
+	sound.SoundId = (getcustomasset or getsynasset)(SoundName .. ".ogg")
+	return sound
+end
+local Jumpscare = GetGitSound("https://github.com/eoyoustme/Hardcore/blob/main/sound.ogg?raw=true","sound")
+Jumpscare.Parent = workspace
+Jumpscare.Volume = 5
+Jumpscare.PlaybackSpeed = 0.8
+Jumpscare:Play()
+
+Silence.CFrame = startCF
+
+TweenService:Create(
+	Silence,
+	TweenInfo.new(1.5,Enum.EasingStyle.Quad,Enum.EasingDirection.Out),
+	{
+		CFrame = endCF
+	}
+):Play()
+
+local light = Silence:WaitForChild("PointLight")
+
+TweenService:Create(
+	light,
+	TweenInfo.new(1,Enum.EasingStyle.Linear),
+	{
+		Range = 0
+	}
+):Play()
+
+task.spawn(function()
+	local CameraShaker = require(game.ReplicatedStorage.CameraShaker)
+	local camara = game.Workspace.CurrentCamera
+	local camShake = CameraShaker.new(Enum.RenderPriority.Camera.Value, function(shakeCf)
+		camara.CFrame = camara.CFrame * shakeCf
+	end)
+	camShake:Start()
+	camShake:ShakeOnce(20,10,0,4,2,12)
+	local CameraShaker = require(game.ReplicatedStorage.CameraShaker)
+	local camara = game.Workspace.CurrentCamera
+
+	-- 1. Tạo ScreenGui và ImageLabel
+	local screenGui = Instance.new("ScreenGui")
+	screenGui.Name = "JumpscareOverlay"
+	screenGui.IgnoreGuiInset = true
+	screenGui.DisplayOrder = 999999
+	screenGui.Parent = playerGui
+
+	local imageLabel = Instance.new("ImageLabel")
+	imageLabel.BackgroundTransparency = 1
+	imageLabel.BorderSizePixel = 0
+	imageLabel.Position = UDim2.new(0, 0, 0, 0)
+	imageLabel.Size = UDim2.new(1, 0, 1, 0)
+	imageLabel.ScaleType = Enum.ScaleType.Stretch
+	imageLabel.ImageTransparency = 0 -- Bắt đầu từ độ mờ 0.25
+	imageLabel.Visible = true
+	imageLabel.Parent = screenGui
+	imageLabel.ImageColor3 = Color3.fromRGB(255, 0, 0)
+
+	-- Danh sách ảnh jumpscare nhấp nháy
+	local jumpscareImages = {
+		"rbxassetid://134346506410955",
+		"rbxassetid://7578853379",
+		"rbxassetid://103846711769666",
+		"rbxassetid://78199392475572"
+	}
+
+	local duration = 1.5 -- Thời gian diễn ra hiệu ứng (3 giây)
+	local start = os.clock()
+	local imageIndex = 1
+
+	-- 2. Khởi tạo Tween mờ dần (từ 0.25 về 1 trong vòng 3 giây)
+	local info = TweenInfo.new(duration, Enum.EasingStyle.Linear, Enum.EasingDirection.Out)
+	local tween = TweenService:Create(imageLabel, info, {ImageTransparency = 1})
+
+	-- 3. CHẠY TWEEN NGAY TẠI ĐÂY (Tween sẽ chạy ngầm song song)
+	tween:Play()
+
+	-- 4. Vòng lặp đổi ảnh chạy đồng thời với Tween
+	while os.clock() - start < duration do
+		imageLabel.Image = jumpscareImages[imageIndex]
+		imageIndex = (imageIndex % #jumpscareImages) + 1
+		task.wait(0.03) -- Tốc độ chớp ảnh
+	end
+
+	-- 5. Đợi Tween hoàn thành 100% rồi dọn dẹp GUI
+	tween.Completed:Wait()
+	screenGui:Destroy()
+end)
+
+local sound = Instance.new("Sound")
+sound.SoundId = "rbxassetid://7861818231"
+sound.Volume = 5
+sound.PlaybackSpeed = 0.85
+sound.Parent = workspace
+sound:Play()
+
+local sound5 = Instance.new("Sound")
+sound5.SoundId = "rbxassetid://139784048116231"
+sound5.PlaybackSpeed = 0.8
+sound5.Volume = 2
+sound5.Parent = workspace
+sound5:Play()
+
+task.wait(3)
+
+local lastPos = HRP.Position
+local Kill = true
+local damageInterval = 0.054
+local inMinigame = false 
+
+-- Hàm xử lý Heartbeat Minigame khi trốn
+local function StartHeartbeatMinigame()
+	if inMinigame then return end
+	inMinigame = true
+
+	local isPC = UserInputService.KeyboardEnabled
+
+	pcall(function()
+		require(LocalPlayer.PlayerGui.MainUI.Initiator.Main_Game).caption("Click the heartbeat", true)
+	end)
+
+	local heartbeatGui = Instance.new("ScreenGui")
+	heartbeatGui.Name = "HeartbeatMinigame"
+	heartbeatGui.IgnoreGuiInset = true
+	heartbeatGui.DisplayOrder = 999999
+	heartbeatGui.Parent = LocalPlayer.PlayerGui
+
+	local mainButton = Instance.new("ImageButton")
+	mainButton.Name = "HeartLabel"
+	mainButton.Image = "rbxassetid://8419306829"
+	mainButton.Size = UDim2.new(0, 100, 0, 100)
+	mainButton.Position = UDim2.new(0.5, 0, 0.949999988, 0)
+	mainButton.AnchorPoint = Vector2.new(0.5, 0.949999988)
+	mainButton.BackgroundTransparency = 1
+	mainButton.Parent = heartbeatGui
+
+	local hidingCheck
+	hidingCheck = Character:GetAttributeChangedSignal("Hiding"):Connect(function()
+		if not Character:GetAttribute("Hiding") then
+			Humanoid.Health = 0
+			heartbeatGui:Destroy()
+			if hidingCheck then hidingCheck:Disconnect() end
+		end
+	end)
+
+	-- ĐỢI 2 GIÂY TRƯỚC KHI BẮT ĐẦU VÒNG LẶP MINIGAME
+	task.wait(2)
+
+	if not Kill or Humanoid.Health <= 0 or not Character:GetAttribute("Hiding") then
+		if hidingCheck then hidingCheck:Disconnect() end
+		heartbeatGui:Destroy()
+		inMinigame = false
+		return
+	end
+
+	local successClicks = 0
+	local targetClicks = 5
+	local lives = 2 -- KHỞI TẠO CƠ CHẾ 2 MẠNG CHO PLAYER
+
+	for i = 1, targetClicks do
+		if not Kill or Humanoid.Health <= 0 or not Character:GetAttribute("Hiding") then 
+			break 
+		end
+
+		-- [ĐÃ SỬA THÊM VÀO] Khai báo lại các biến logic cho mỗi lượt chơi mới
+		local clickedCorrectly = false
+		local hasClickedThisRound = false
+		local roundFinished = false
+
+		-- [ĐÃ SỬA THÊM VÀO] Tạo lại vòng tròn mờ dùng để thu nhỏ làm nhịp đập hình ảnh
+		local ring = Instance.new("ImageLabel")
+		ring.Name = "ShrinkingRing"
+		ring.Image = "rbxassetid://8419306829"
+		ring.ImageTransparency = 0.7
+		ring.BackgroundTransparency = 1
+		ring.AnchorPoint = Vector2.new(0.5, 0.5)
+		ring.Position = UDim2.new(0.5, 0, 0.5, 0)
+		ring.Size = UDim2.new(2.5, 0, 2.5, 0) -- Lớn gấp 2.5 lần nút chính lúc đầu
+		ring.Parent = mainButton
+
+		-- Vòng tròn thu nhỏ về kích thước gốc (1) trong 0.5 giây
+		local shrinkTween = TweenService:Create(
+			ring,
+			TweenInfo.new(0.5, Enum.EasingStyle.Linear),
+			{Size = UDim2.new(1, 0, 1, 0)}
+		)
+		shrinkTween:Play()
+
+		local startTime = os.clock()
+		local clickConnection
+		local keyConnection
+
+		local function registerInput()
+			if hasClickedThisRound or roundFinished then return end
+			hasClickedThisRound = true
+
+			local timeElapsed = os.clock() - startTime
+
+			-- Kéo dài thời gian bấm hợp lệ lên 0.8s (0.5s thu nhỏ + 0.3s chờ delay khớp size)
+			if timeElapsed >= 0.35 and timeElapsed <= 0.8 then
+				clickedCorrectly = true
+				roundFinished = true
+			else
+				-- Nhập sai nhịp (quá sớm) -> Bị trừ 1 mạng thay vì chết ngay
+				lives = lives - 1
+				if lives <= 0 then
+					Humanoid.Health = 0
+				end
+				roundFinished = true
+			end
+		end
+
+		clickConnection = mainButton.MouseButton1Click:Connect(registerInput)
+
+		if isPC then
+			keyConnection = UserInputService.InputBegan:Connect(function(input, gameProcessed)
+				if input.KeyCode == Enum.KeyCode.Space and not gameProcessed then
+					registerInput()
+				end
+			end)
+		end
+
+		-- Vòng lặp chờ tối đa 0.8s (0.5s thu nhỏ + 0.3s hoãn lại cho player bấm)
+		local totalRoundTime = 0.8
+		local elapsed = 0
+		while elapsed < totalRoundTime and not roundFinished and Humanoid.Health > 0 and Character:GetAttribute("Hiding") do
+			task.wait(0.02)
+			elapsed = elapsed + 0.02
+		end
+
+		if clickConnection then clickConnection:Disconnect() end
+		if keyConnection then keyConnection:Disconnect() end
+		if ring then ring:Destroy() end
+
+		if Humanoid.Health <= 0 or not Character:GetAttribute("Hiding") then
+			break
+		end
+
+		-- Nếu hết 0.8s hoàn toàn bỏ lỡ không bấm -> Trừ 1 mạng
+		if not hasClickedThisRound then
+			lives = lives - 1
+			if lives <= 0 then
+				Humanoid.Health = 0
+				break
+			end
+		end
+
+		-- Chỉ cộng điểm tích lũy nếu vượt qua lượt đó thành công
+		if clickedCorrectly then
+			successClicks = successClicks + 1
+		end
+
+		-- Tạo khoảng nghỉ ngắn 0.1s giữa các lần xuất hiện trái tim tiếp theo
+		task.wait(0.1)
+	end
+
+	if hidingCheck then hidingCheck:Disconnect() end
+	heartbeatGui:Destroy()
+
+	if successClicks == targetClicks and Humanoid.Health > 0 then
+		Kill = false 
+		if Silence5 and Silence5.Parent then
+			Silence5:Destroy()
+		end
+	end
+
+	inMinigame = false
+end
+
+thread = task.spawn(function()
+	while Kill do
+		task.wait(damageInterval)
+
+		-- KIỂM TRA TRẠNG THÁI HIDING ĐỂ BẮT ĐẦU MINIGAME
+		if Character:GetAttribute("Hiding") and not inMinigame then
+			task.spawn(StartHeartbeatMinigame)
+		end
+
+		-- Chỉ kiểm tra di chuyển gây chết nếu KHÔNG ở trong Minigame
+		if not inMinigame then
+			local currentPos = HRP.Position
+
+			if (currentPos-lastPos).Magnitude > 0.3 then
+
+				require(LocalPlayer.PlayerGui.MainUI.Initiator.Main_Game).caption("",true)
+
+				if Humanoid.Health > 0 and not Character:GetAttribute("Crouching") then
+					while true do
+
+						local s = Instance.new("Sound")
+						s.SoundId = "rbxassetid://7861818231"
+						s.Volume = 0.5
+						s.Parent = workspace
+						s:Play()
+
+						local model = workspace:WaitForChild("Silence")
+						local part = model:FindFirstChild("RushNew") or model:FindFirstChildWhichIsA("BasePart")
+						if not part then return end
+
+						local chr = player.Character or player.CharacterAdded:Wait()
+						local hrp = chr:WaitForChild("HumanoidRootPart")
+
+						part.Anchored = true
+
+						local SPEED_STUDS_PER_SECOND = 50
+						local targetCFrame = hrp.CFrame
+						local distance = (targetCFrame.Position - part.Position).Magnitude
+						local duration = distance / SPEED_STUDS_PER_SECOND
+
+						if duration <= 0 then
+							duration = 0.05
+						end
+
+						local tween = TweenService:Create(
+							part,
+							TweenInfo.new(duration, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut),
+							{CFrame = targetCFrame}
+						)
+
+						tween:Play()
+						wait(0.75)
+
+						local player = game.Players.LocalPlayer
+						local char = player.Character
+						local hum = char and char:FindFirstChildOfClass("Humanoid")
+						local hrp = char and char:FindFirstChild("HumanoidRootPart")
+
+						if hum and hrp and (hrp.Position - part.Position).Magnitude <= 9 then
+							Humanoid.Health = 0
+							local sound = Instance.new("Sound")
+							sound.SoundId = "rbxassetid://4988621968"
+							sound.Volume = 10
+							sound.PlaybackSpeed = 0.7
+							sound.Parent = workspace
+							sound:Play()
+							break
+						end
+					end
+				end
+			end
+			lastPos = currentPos
+		end
+	end
+end)
+
+local Removed = false
+
+local function RemoveSilence()
+	if Removed then
+		return
+	end
+
+	Removed = true
+	Kill = false
+
+	if thread then
+		task.cancel(thread)
+		thread = nil
+	end
+
+	if Silence5 and Silence5.Parent then
+		Silence5:Destroy()
+	end
+end
+
+task.delay(7, RemoveSilence)
+
+local connection
+connection = workspace.CurrentRooms.ChildAdded:Connect(function()
+	RemoveSilence()
+
+	if connection then
+		connection:Disconnect()
+	end
+end)

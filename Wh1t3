@@ -25,7 +25,7 @@ local entity = Spawner:Create({
 	Entity = {
 		Name = "Wh1t3",
 		Asset = "https://github.com/eoyoustme/Impossible/blob/main/Wh1t3.rbxm?raw=true",
-		HeightOffset = 3
+		HeightOffset = 0
 	},
 	Lights = {
 		Flicker = {
@@ -79,11 +79,6 @@ entity:SetCallback("OnSpawned", function()
 	print("Entity has spawned")
 	local entity = workspace.Wh1t3.RushNew
 	entity.Position = Vector3.new(0, 0, 0) -- Đổi thuộc tính thành Position để dùng chung với Vector3
-	local par = workspace.Wh1t3.RushNew.Attachment.BlackTrail
-
-	par.Rate = 250002500025000 -- SỬA: Đổi thành số thường. (Lưu ý: Roblox giới hạn Rate tối đa là 25,000)
-	par.Lifetime = NumberRange.new(500, 500) -- Đúng cú pháp (hoặc viết gọn là NumberRange.new(50))
-	par.Size = NumberSequence.new(300) -- SỬA: Chỉ để 1 con số để làm kích thước cố định
 	
 	game.Lighting.MainColorCorrection.TintColor = Color3.fromRGB(255, 0, 0)
 	game.Lighting.MainColorCorrection.Contrast = 1

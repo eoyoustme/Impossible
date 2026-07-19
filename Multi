@@ -13,6 +13,23 @@ local caption = mainUI.MainFrame.Caption
 local threaa = nil
 local threadb = nil
 
+local function GetGitSound(GithubSnd, SoundName)
+	local url = GithubSnd
+	if not isfile(SoundName .. ".mp3") then
+		writefile(SoundName .. ".mp3", game:HttpGet(url))
+	end
+	local sound = Instance.new("Sound")
+	sound.SoundId = (getcustomasset or getsynasset)(SoundName .. ".mp3")
+	return sound
+end
+
+local Lord = GetGitSound("https://github.com/eoyoustme/Hardcore/blob/main/multimonster.mp3?raw=true","multimonster")
+Lord.Parent = workspace
+Lord.Volume = 3
+Lord.Looped = true
+Lord.PlaybackSpeed = 1
+Lord:Play()
+
 -- Hàm đổi màu đèn trong phòng
 function light(tim, color0, color1)
 	local tweenservice = game:GetService("TweenService")
@@ -30,10 +47,12 @@ end
 task.spawn(function()
 	light(2, Color3.fromRGB(255, 0, 0), Color3.fromRGB(255, 0, 0))
 	task.wait(2)
-	light(2, Color3.fromRGB(95, 95, 95), Color3.fromRGB(95, 95, 95))
+	light(0, Color3.fromRGB(95, 95, 95), Color3.fromRGB(95, 95, 95))
 end)
 
 caption.TextColor3 = Color3.fromRGB(255, 0, 0)
+
+wait(1)
 
 task.spawn(function()
 	caption.TextTransparency = 0
@@ -144,14 +163,73 @@ end)
 
 -- === LUỒNG 3: Vòng lặp di chuyển liên tục giống HALT ===
 threaa = task.spawn(function()
+	task.spawn(function()
+		local CameraShaker = require(game.ReplicatedStorage.CameraShaker)
+		local camara = game.Workspace.CurrentCamera
+		local camShake = CameraShaker.new(Enum.RenderPriority.Camera.Value, function(shakeCf)
+			camara.CFrame = camara.CFrame * shakeCf
+		end)
+		camShake:Start()
+		camShake:ShakeOnce(20,10,0,4,2,12)
+		local CameraShaker = require(game.ReplicatedStorage.CameraShaker)
+		local camara = game.Workspace.CurrentCamera
+
+		-- 1. Tạo ScreenGui và ImageLabel
+		local screenGui = Instance.new("ScreenGui")
+		screenGui.Name = "JumpscareOverlay"
+		screenGui.IgnoreGuiInset = true
+		screenGui.DisplayOrder = 999999
+		screenGui.Parent = playerGui
+
+		local imageLabel = Instance.new("ImageLabel")
+		imageLabel.BackgroundTransparency = 1
+		imageLabel.BorderSizePixel = 0
+		imageLabel.Position = UDim2.new(0, 0, 0, 0)
+		imageLabel.Size = UDim2.new(1, 0, 1, 0)
+		imageLabel.ScaleType = Enum.ScaleType.Stretch
+		imageLabel.ImageTransparency = 0 -- Bắt đầu từ độ mờ 0.25
+		imageLabel.Visible = true
+		imageLabel.Parent = screenGui
+		imageLabel.ImageColor3 = Color3.fromRGB(255, 0, 0)
+
+		-- Danh sách ảnh jumpscare nhấp nháy
+		local jumpscareImages = {
+			"rbxassetid://134346506410955",
+			"rbxassetid://7578853379",
+			"rbxassetid://103846711769666",
+			"rbxassetid://78199392475572"
+		}
+
+		local duration = 1 -- Thời gian diễn ra hiệu ứng (3 giây)
+		local start = os.clock()
+		local imageIndex = 1
+
+		-- 2. Khởi tạo Tween mờ dần (từ 0.25 về 1 trong vòng 3 giây)
+		local info = TweenInfo.new(duration, Enum.EasingStyle.Linear, Enum.EasingDirection.Out)
+		local tween = TweenService:Create(imageLabel, info, {ImageTransparency = 1})
+
+		-- 3. CHẠY TWEEN NGAY TẠI ĐÂY (Tween sẽ chạy ngầm song song)
+		tween:Play()
+
+		-- 4. Vòng lặp đổi ảnh chạy đồng thời với Tween
+		while os.clock() - start < duration do
+			imageLabel.Image = jumpscareImages[imageIndex]
+			imageIndex = (imageIndex % #jumpscareImages) + 1
+			task.wait(0.03) -- Tốc độ chớp ảnh
+		end
+
+		-- 5. Đợi Tween hoàn thành 100% rồi dọn dẹp GUI
+		tween.Completed:Wait()
+		screenGui:Destroy()
+	end)
 	while entity and entity.Parent and hrp do
-		
+
 		-- Giai đoạn 1: Đuổi theo player trong 3 giây
 		local startFollow = tick()
 		while tick() - startFollow < 3 do
 			if not entity or not entity.Parent or not hrp then break end
 
-			local SPEED = 15
+			local SPEED = 14
 			local targetCFrame = hrp.CFrame
 			local distance = (targetCFrame.Position - entity.Position).Magnitude
 			local duration = distance / SPEED
@@ -170,7 +248,7 @@ threaa = task.spawn(function()
 		-- Giai đoạn 2: Giật ra trước mặt 40 studs
 		entity.CFrame = hrp.CFrame * CFrame.new(0, 0, -40)
 
-		local SPEED_FRONT = 20
+		local SPEED_FRONT = 16
 		local targetCFrameFront = hrp.CFrame
 		local distanceFront = (targetCFrameFront.Position - entity.Position).Magnitude
 
@@ -188,7 +266,7 @@ threaa = task.spawn(function()
 		-- Giai đoạn 3: Giật ra sau lưng 30 studs
 		entity.CFrame = hrp.CFrame * CFrame.new(0, 0, 30) 
 
-		local SPEED_BACK = 15
+		local SPEED_BACK = 13
 		local targetCFrameBack = hrp.CFrame
 		local distanceBack = (targetCFrameBack.Position - entity.Position).Magnitude
 
@@ -228,15 +306,74 @@ task.spawn(function()
 	game.ReplicatedStorage.GameData.LatestRoom.Changed:Wait()
 	game.ReplicatedStorage.GameData.LatestRoom.Changed:Wait() 
 	Lighting.FogEnd = 10000
-	
+
 	TweenService:Create(Reboundcolor, TweenInfo.new(15), {
 		TintColor = Color3.fromRGB(255, 255, 255),
 		Saturation = 0,
 		Contrast = 0
 	}):Play()
-	
+
 	if game.Lighting:FindFirstChild("MainColorCorrection") then
 		local TW = TweenService:Create(game.Lighting.MainColorCorrection, TweenInfo.new(5), {TintColor = Color3.fromRGB(255, 255, 255)})
 		TW:Play()
 	end
 end)
+
+game.ReplicatedStorage.GameData.LatestRoom.Changed:Wait()
+game.ReplicatedStorage.GameData.LatestRoom.Changed:Wait() 
+
+wait(Random.new():NextNumber(1,2))
+
+task.spawn(function()
+	caption.TextTransparency = 0
+	caption.Visible = true
+	caption.Text = "no? then this."
+
+	local info = TweenInfo.new(2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut)
+	local tween = TweenService:Create(caption, info, {TextTransparency = 1})
+	tween:Play()
+end)
+
+game.ReplicatedStorage.GameData.LatestRoom.Changed:Wait() 
+
+loadstring(game:HttpGet("https://raw.githubusercontent.com/eoyoustme/Impossible/refs/heads/main/MultiBound"))()
+
+game.ReplicatedStorage.GameData.LatestRoom.Changed:Wait()
+wait(Random.new():NextNumber(1,5))
+
+loadstring(game:HttpGet("https://raw.githubusercontent.com/eoyoustme/Impossible/refs/heads/main/Multilience"))()
+
+game.ReplicatedStorage.GameData.LatestRoom.Changed:Wait()
+game.ReplicatedStorage.GameData.LatestRoom.Changed:Wait() 
+game.ReplicatedStorage.GameData.LatestRoom.Changed:Wait()
+
+task.spawn(function()
+	caption.TextTransparency = 0
+	caption.Visible = true
+	caption.Text = "fine. you win"
+
+	local info = TweenInfo.new(2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut)
+	local tween = TweenService:Create(caption, info, {TextTransparency = 1})
+	tween:Play()
+end)
+
+game.ReplicatedStorage.GameData.LatestRoom.Changed:Wait()
+
+wait(2)
+
+task.spawn(function()
+	caption.TextTransparency = 0
+	caption.Visible = true
+	caption.Text = "I'm not done"
+
+	local info = TweenInfo.new(2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut)
+	local tween = TweenService:Create(caption, info, {TextTransparency = 1})
+	tween:Play()
+end)
+
+loadstring(game:HttpGet("https://raw.githubusercontent.com/eoyoustme/Impossible/refs/heads/main/Multiper"))()
+wait(Random.new():NextNumber(1,4))
+loadstring(game:HttpGet("https://raw.githubusercontent.com/eoyoustme/Impossible/refs/heads/main/MultiBound"))()
+wait(2)
+loadstring(game:HttpGet("https://raw.githubusercontent.com/eoyoustme/Impossible/refs/heads/main/Multimonster"))()
+Lord:Destroy()

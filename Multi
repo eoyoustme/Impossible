@@ -10,32 +10,27 @@ local playerGui = player:WaitForChild("PlayerGui")
 local mainUI = playerGui:WaitForChild("MainUI")
 local caption = mainUI.MainFrame.Caption
 
-local tween = game:GetService("TweenService")
 local threaa = nil
 local threadb = nil
 
-
-function light(tim,color0,color1)
+-- Hàm đổi màu đèn trong phòng
+function light(tim, color0, color1)
 	local tweenservice = game:GetService("TweenService")
-	local info = TweenInfo.new(tim,Enum.EasingStyle.Linear)
-	for _ , light in pairs(game.Workspace.CurrentRooms:GetDescendants()) do
-		if light:IsA("Light") or light:IsA("SurfaceLight") or light:IsA("SpotLight") then
-			local target = {Color = color1}
-			local anim = tweenservice:Create(light,info,target)
-			anim:Play()
+	local info = TweenInfo.new(tim, Enum.EasingStyle.Linear)
+	for _, l in pairs(game.Workspace.CurrentRooms:GetDescendants()) do
+		if l:IsA("Light") or l:IsA("SurfaceLight") or l:IsA("SpotLight") then
+			tweenservice:Create(l, info, {Color = color1}):Play()
 		end
-		if light:IsA("MeshPart") and light.Material == Enum.Material.Neon  and light.Name ~= "Skybox" then
-			local target1 = {Color = color0}
-			local anim2 = tweenservice:Create(light,info,target1)
-			anim2:Play()
+		if l:IsA("MeshPart") and l.Material == Enum.Material.Neon and l.Name ~= "Skybox" then
+			tweenservice:Create(l, info, {Color = color0}):Play()
 		end
 	end
 end
 
 task.spawn(function()
-light(2,Color3.fromRGB(255, 0, 0),Color3.fromRGB(255, 0, 0))
-wait(2)
-	light(2,Color3.fromRGB(95, 95, 95),Color3.fromRGB(95, 95, 95))
+	light(2, Color3.fromRGB(255, 0, 0), Color3.fromRGB(255, 0, 0))
+	task.wait(2)
+	light(2, Color3.fromRGB(95, 95, 95), Color3.fromRGB(95, 95, 95))
 end)
 
 caption.TextColor3 = Color3.fromRGB(255, 0, 0)
@@ -50,7 +45,8 @@ task.spawn(function()
 	tween:Play()
 end)
 
-game.ReplicatedStorage.GameData.LatestRoom.Changed:Wait(5)
+-- SỬA LỖI: Bỏ số 5 vô nghĩa trong :Wait()
+game.ReplicatedStorage.GameData.LatestRoom.Changed:Wait()
 
 task.spawn(function()
 	caption.TextTransparency = 0
@@ -64,10 +60,12 @@ end)
 
 game.ReplicatedStorage.GameData.LatestRoom.Changed:Wait()
 game.ReplicatedStorage.GameData.LatestRoom.Changed:Wait()
-local rooms = workspace.CurrentRooms
 
-local notcureect = rooms:FindFirstChild(game.ReplicatedStorage.GameData.LatestRoom.Value - 1)
-local multihalt = "https://github.com/eoyoustme/Script/blob/main/Multimonster.rbxm"
+local rooms = workspace.CurrentRooms
+local notcureect = rooms:FindFirstChild(tostring(game.ReplicatedStorage.GameData.LatestRoom.Value - 1))
+
+-- SỬA LỖI: Thay đổi link sang dạng raw để tải chuẩn file rbxm
+local multihalt = "https://github.com/eoyoustme/Script/raw/main/Multimonster.rbxm"
 
 function getgithubmodeL(url)
 	if not (writefile and getcustomasset and request) then return nil end
@@ -81,22 +79,30 @@ function getgithubmodeL(url)
 end
 
 local CameraShaker = require(game.ReplicatedStorage.CameraShaker)
-local camara = game.Workspace.CurrentCamera
+local camera = game.Workspace.CurrentCamera
 local camShake = CameraShaker.new(Enum.RenderPriority.Camera.Value, function(shakeCf)
-	camara.CFrame = camara.CFrame * shakeCf
+	camera.CFrame = camera.CFrame * shakeCf
 end)
 camShake:Start()
-camShake:ShakeOnce(10,3.5,0.1,2,1,0.5)
+camShake:ShakeOnce(10, 3.5, 0.1, 2, 1, 0.5)
 
-wait(1)
+task.wait(1)
 
 local entity5 = getgithubmodeL(multihalt)
-local entity5.Parent = workspace
-local entity = workspace.multimonster.Multi
+if entity5 then
+	entity5.Parent = workspace -- SỬA LỖI: Xóa chữ 'local' ở đây để tránh crash script
+end
+
+local entity = workspace:FindFirstChild("multimonster") and workspace.multimonster:FindFirstChild("Multi")
+if not entity then return end
+
 entity.Anchored = true
 entity.CanCollide = false
 
-entity.CFrame = notcureect.Door.Door.CFrame * CFrame.new(0, 0, -50)
+if notcureect and notcureect:FindFirstChild("Door") and notcureect.Door:FindFirstChild("Door") then
+	entity.CFrame = notcureect.Door.Door.CFrame * CFrame.new(0, 0, -50)
+end
+
 local chr = player.Character or player.CharacterAdded:Wait()
 local hrp = chr:WaitForChild("HumanoidRootPart")
 
@@ -106,29 +112,41 @@ task.spawn(function()
 	game.ReplicatedStorage.GameData.LatestRoom.Changed:Wait() -- Qua phòng 2
 
 	if entity and entity.Parent then
-		entity:Destroy() -- Xóa thực thể, lúc này vòng lặp di chuyển ở luồng dưới cũng sẽ tự dừng
+		entity:Destroy() 
+		if workspace:FindFirstChild("multimonster") then
+			workspace.multimonster:Destroy()
+		end
 	end
 end)
 
--- === LUỒNG 2: Vòng lặp di chuyển liên tục giống HALT ===
+-- === LUỒNG 2: Vòng lặp kiểm tra sát thương (Đưa RA NGOÀI vòng lặp di chuyển để tránh spam lag) ===
+threadb = task.spawn(function()
+	while true do
+		task.wait(0.2)
+		if not entity or not entity.Parent then break end -- Tự ngắt luồng khi quái bị xóa
+
+		local char = player.Character
+		local hum = char and char:FindFirstChildOfClass("Humanoid")
+		local pHrp = char and char:FindFirstChild("HumanoidRootPart")
+
+		if hum and pHrp and hum.Health > 0 then
+			if (pHrp.Position - entity.Position).Magnitude <= 6 then
+				hum.Health = 0 -- Giết ngay lập tức giống Halt gốc
+				local stats = game:GetService("ReplicatedStorage").GameStats:FindFirstChild("Player_" .. player.Name)
+				if stats and stats:FindFirstChild("Total") then
+					stats.Total.DeathCause.Value = "MultiHalt"
+				end
+				break
+			end
+		end
+	end
+end)
+
+-- === LUỒNG 3: Vòng lặp di chuyển liên tục giống HALT ===
 threaa = task.spawn(function()
 	while entity and entity.Parent and hrp do
-		threadb = task.spawn(function()
-			while true do
-				task.wait(0.3)
-
-				local player = game.Players.LocalPlayer
-				local char = player.Character
-				local hum = char and char:FindFirstChildOfClass("Humanoid")
-				local hrp = char and char:FindFirstChild("HumanoidRootPart")
-
-				if hum and hrp and (hrp.Position - entity.Position).Magnitude <= 5 then
-					game.Players.LocalPlayer.Character.Humanoid.Health -= 100
-					game:GetService("ReplicatedStorage").GameStats["Player_".. game.Players.LocalPlayer.Name].Total.DeathCause.Value = "MultiHalt"
-				end
-			end
-		end)
-
+		
+		-- Giai đoạn 1: Đuổi theo player trong 3 giây
 		local startFollow = tick()
 		while tick() - startFollow < 3 do
 			if not entity or not entity.Parent or not hrp then break end
@@ -149,6 +167,7 @@ threaa = task.spawn(function()
 
 		if not entity or not entity.Parent or not hrp then break end
 
+		-- Giai đoạn 2: Giật ra trước mặt 40 studs
 		entity.CFrame = hrp.CFrame * CFrame.new(0, 0, -40)
 
 		local SPEED_FRONT = 20
@@ -166,6 +185,7 @@ threaa = task.spawn(function()
 		task.wait(1.5)
 		if not entity or not entity.Parent or not hrp then break end
 
+		-- Giai đoạn 3: Giật ra sau lưng 30 studs
 		entity.CFrame = hrp.CFrame * CFrame.new(0, 0, 30) 
 
 		local SPEED_BACK = 15
@@ -184,7 +204,7 @@ threaa = task.spawn(function()
 	end
 end)
 
-local Lighting = game:GetService("Lighting")
+-- HỆ THỐNG LIGHTING KHÔNG GIAN (Giữ nguyên cấu trúc của bạn)
 Lighting.Ambient = Color3.new(1, 0, 0)
 Lighting.Brightness = 0.1
 Lighting.FogEnd = 0
@@ -196,15 +216,27 @@ local oldBackTween = TweenService:Create(Lighting, TweenInfo.new(1, Enum.EasingS
 })
 oldBackTween:Play()
 
-local Reboundcolor = Instance.new("ColorCorrectionEffect",game.Lighting) game.Debris:AddItem(Reboundcolor,24)
+local Reboundcolor = Instance.new("ColorCorrectionEffect", game.Lighting)
+Debris:AddItem(Reboundcolor, 24)
 Reboundcolor.Name = "Warn"
-Reboundcolor.TintColor = Color3.fromRGB(155, 0, 0) Reboundcolor.Saturation = 0 Reboundcolor.Contrast = 0
+Reboundcolor.TintColor = Color3.fromRGB(155, 0, 0)
+Reboundcolor.Saturation = 0
+Reboundcolor.Contrast = 0
 
-game.ReplicatedStorage.GameData.LatestRoom.Changed:Wait()
-game.ReplicatedStorage.GameData.LatestRoom.Changed:Wait() 
-Lighting.FogEnd = 10000
-game.TweenService:Create(Reboundcolor,TweenInfo.new(15),{TintColor = Color3.fromRGB(255, 255, 255),Saturation = 0, Contrast = 0}):Play()
-local TweenService = game:GetService("TweenService")
-local TW = TweenService:Create(game.Lighting.MainColorCorrection, TweenInfo.new(5),{TintColor = Color3.fromRGB(255, 255, 255)})
-TW:Play()
-
+-- Luồng kết thúc hiệu ứng Lighting khi kết thúc sự kiện
+task.spawn(function()
+	game.ReplicatedStorage.GameData.LatestRoom.Changed:Wait()
+	game.ReplicatedStorage.GameData.LatestRoom.Changed:Wait() 
+	Lighting.FogEnd = 10000
+	
+	TweenService:Create(Reboundcolor, TweenInfo.new(15), {
+		TintColor = Color3.fromRGB(255, 255, 255),
+		Saturation = 0,
+		Contrast = 0
+	}):Play()
+	
+	if game.Lighting:FindFirstChild("MainColorCorrection") then
+		local TW = TweenService:Create(game.Lighting.MainColorCorrection, TweenInfo.new(5), {TintColor = Color3.fromRGB(255, 255, 255)})
+		TW:Play()
+	end
+end)

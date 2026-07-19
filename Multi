@@ -91,6 +91,7 @@ camShake:ShakeOnce(10,3.5,0.1,2,1,0.5)
 wait(1)
 
 local entity5 = getgithubmodeL(multihalt)
+local entity5.Parent = workspace
 local entity = workspace.multimonster.Multi
 entity.Anchored = true
 entity.CanCollide = false

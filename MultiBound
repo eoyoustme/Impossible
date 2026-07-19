@@ -131,7 +131,7 @@ local entity = Spawner:Create({
 entity:SetCallback("OnSpawned", function()
 	print("Entity has spawned")
 	light(2,Color3.fromRGB(0, 0, 127),Color3.fromRGB(0, 0, 127))
-	local bruh = workspace.Rebound.RushNew
+	local bruh = workspace.Multibound.Multi
 	local TweenService = game:GetService("TweenService")
 	local move = GetGitSound("https://github.com/check78/worldcuuuup/blob/main/DoomBegin.mp3?raw=true","Reboun")
 	move.Parent = bruh
@@ -139,9 +139,9 @@ entity:SetCallback("OnSpawned", function()
 	move.Volume = 0
 	move.Looped = true
 	move.PlaybackSpeed = 0.8
-	local vroom = TweenService:Create(move, TweenInfo.new(2),{Volume = 0.2})
+	local vroom = TweenService:Create(move, TweenInfo.new(2),{Volume = 2.1})
 	local distort = Instance.new("DistortionSoundEffect")
-	distort.Level = 0.55
+	distort.Level = 0.05
 	distort.Parent = move
 	move.RollOffMaxDistance = 200
 	move.RollOffMinDistance = 100

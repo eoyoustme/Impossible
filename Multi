@@ -267,6 +267,36 @@ local function spawnRandomEntity()
 
 	if picked == "Halt" then
 		spawnHalt()
+		Lighting.Ambient = Color3.new(1, 0, 0)
+		Lighting.Brightness = 0.1
+		Lighting.FogEnd = 0
+		Lighting.FogStart = 0
+		Lighting.FogColor = Color3.new(0, 0, 0)
+
+		TweenService:Create(Lighting, TweenInfo.new(1, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out), {FogEnd = 50}):Play()
+
+		local Reboundcolor = Instance.new("ColorCorrectionEffect", game.Lighting)
+		Debris:AddItem(Reboundcolor, 24)
+		Reboundcolor.Name = "Warn"
+		Reboundcolor.TintColor = Color3.fromRGB(155, 0, 0)
+		Reboundcolor.Saturation = 0
+		Reboundcolor.Contrast = 0
+
+		task.spawn(function()
+			game.ReplicatedStorage.GameData.LatestRoom.Changed:Wait()
+			game.ReplicatedStorage.GameData.LatestRoom.Changed:Wait()
+			Lighting.FogEnd = 10000
+
+			TweenService:Create(Reboundcolor, TweenInfo.new(15), {
+				TintColor = Color3.fromRGB(255, 255, 255),
+				Saturation = 0,
+				Contrast = 0
+			}):Play()
+
+			if game.Lighting:FindFirstChild("MainColorCorrection") then
+				TweenService:Create(game.Lighting.MainColorCorrection, TweenInfo.new(5), {TintColor = Color3.fromRGB(255, 255, 255)}):Play()
+			end
+		end)
 	elseif ENTITY_URLS[picked] then
 		loadstring(game:HttpGet(ENTITY_URLS[picked]))()
 	end
@@ -300,36 +330,7 @@ game.ReplicatedStorage.GameData.LatestRoom.Changed:Wait()
 spawnRandomEntity()
 
 -- Hiệu ứng Lighting không gian
-Lighting.Ambient = Color3.new(1, 0, 0)
-Lighting.Brightness = 0.1
-Lighting.FogEnd = 0
-Lighting.FogStart = 0
-Lighting.FogColor = Color3.new(0, 0, 0)
 
-TweenService:Create(Lighting, TweenInfo.new(1, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out), {FogEnd = 50}):Play()
-
-local Reboundcolor = Instance.new("ColorCorrectionEffect", game.Lighting)
-Debris:AddItem(Reboundcolor, 24)
-Reboundcolor.Name = "Warn"
-Reboundcolor.TintColor = Color3.fromRGB(155, 0, 0)
-Reboundcolor.Saturation = 0
-Reboundcolor.Contrast = 0
-
-task.spawn(function()
-	game.ReplicatedStorage.GameData.LatestRoom.Changed:Wait()
-	game.ReplicatedStorage.GameData.LatestRoom.Changed:Wait()
-	Lighting.FogEnd = 10000
-
-	TweenService:Create(Reboundcolor, TweenInfo.new(15), {
-		TintColor = Color3.fromRGB(255, 255, 255),
-		Saturation = 0,
-		Contrast = 0
-	}):Play()
-
-	if game.Lighting:FindFirstChild("MainColorCorrection") then
-		TweenService:Create(game.Lighting.MainColorCorrection, TweenInfo.new(5), {TintColor = Color3.fromRGB(255, 255, 255)}):Play()
-	end
-end)
 
 game.ReplicatedStorage.GameData.LatestRoom.Changed:Wait()
 game.ReplicatedStorage.GameData.LatestRoom.Changed:Wait()
@@ -370,6 +371,16 @@ task.wait(Random.new():NextNumber(1, 4))
 spawnRandomEntity()
 task.wait(2)
 
+game.ReplicatedStorage.GameData.LatestRoom.Changed:Wait()
+game.ReplicatedStorage.GameData.LatestRoom.Changed:Wait()
+spawnRandomEntity()
+game.ReplicatedStorage.GameData.LatestRoom.Changed:Wait()
+game.ReplicatedStorage.GameData.LatestRoom.Changed:Wait()
+spawnRandomEntity()
+game.ReplicatedStorage.GameData.LatestRoom.Changed:Wait()
+game.ReplicatedStorage.GameData.LatestRoom.Changed:Wait()
+spawnRandomEntity()
+game.ReplicatedStorage.GameData.LatestRoom.Changed:Wait()
 -- Gọi Multimonster ở cuối cùng
 loadstring(game:HttpGet("https://raw.githubusercontent.com/eoyoustme/Impossible/refs/heads/main/Multimonster"))()
 

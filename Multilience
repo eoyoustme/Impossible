@@ -89,15 +89,6 @@ TweenService:Create(
 	}
 ):Play()
 
-local light = Silence:WaitForChild("PointLight")
-
-TweenService:Create(
-	light,
-	TweenInfo.new(1,Enum.EasingStyle.Linear),
-	{
-		Range = 0
-	}
-):Play()
 
 task.spawn(function()
 	local CameraShaker = require(game.ReplicatedStorage.CameraShaker)

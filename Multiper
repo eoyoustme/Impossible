@@ -26,7 +26,7 @@ local entity = Spawner:Create({
 	Entity = {
 		Name = "Multiper",
 		Asset = "https://github.com/eoyoustme/Impossible/blob/main/MultimonsterFace.rbxm?raw=true",
-		HeightOffset = 4
+		HeightOffset = 0.4
 	},
 	Lights = {
 		Flicker = {
@@ -262,6 +262,12 @@ entity:SetCallback("OnEnterRoom", function(room: Model, firstTime: boolean)
 
 			-- Chạy chuỗi hiệu ứng âm thanh, rung lắc và xóa thực thể
 			task.spawn(function()	
+						local sound = Instance.new("Sound")
+						sound.SoundId = "rbxassetid://1837829565"
+						sound.Volume = 10
+						sound.PlaybackSpeed = 0.6
+						sound.Parent = workspace
+						sound:Play()
 				wait(2)
 				entityModel:Destroy()
 			end)

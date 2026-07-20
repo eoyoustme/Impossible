@@ -7,12 +7,12 @@ local Spawner = loadstring(game:HttpGet("https://raw.githubusercontent.com/Regul
 local entity = Spawner:Create({
 	Entity = {
 		Name = "Multimonster",
-		Asset = "https://github.com/eoyoustme/Script/raw/main/Multimonster.rbxm?raw=true",
-		HeightOffset = 0
+		Asset = "https://github.com/eoyoustme/Impossible/blob/main/MultimonsterFace.rbxm?raw=true",
+		HeightOffset = 1
 	},
 	Lights = {
 		Flicker = {
-			Enabled = true,
+			Enabled = false,
 			Duration = 10
 		},
 		Shatter = true,
@@ -27,8 +27,8 @@ local entity = Spawner:Create({
 		Values = {1.5, 20, 0.1, 1} -- Magnitude, Roughness, FadeIn, FadeOut
 	},
 	Movement = {
-		Speed = 200,
-		Delay = 10,
+		Speed = 400,
+		Delay = 3,
 		Reversed = false
 	},
 	Rebounding = {
@@ -59,19 +59,151 @@ local entity = Spawner:Create({
 ---====== Debug entity ======---
 
 entity:SetCallback("OnSpawned", function()
-    print("Entity has spawned")
+	print("Entity has spawned")
+	local CameraShaker = require(game.ReplicatedStorage.CameraShaker)
+	local camara = game.Workspace.CurrentCamera
+	local camShake = CameraShaker.new(Enum.RenderPriority.Camera.Value, function(shakeCf)
+		camara.CFrame = camara.CFrame * shakeCf
+	end)
+	camShake:Start()
+	camShake:ShakeOnce(10,3.5,0.1,1,1,0.5)
 end)
 
 entity:SetCallback("OnStartMoving", function()
-    print("Entity has started moving")
+	print("Entity has started moving")
 end)
 
+local hasTriggered = false
+
 entity:SetCallback("OnEnterRoom", function(room: Model, firstTime: boolean)
-    if firstTime == true then
-        print("Entity has entered room: ".. room.Name.. " for the first time")
-    else
-        print("Entity has entered room: ".. room.Name.. " again")
-    end
+	if firstTime == true then
+		local latestRoomNum = tostring(game.ReplicatedStorage.GameData.LatestRoom.Value)
+		if room.Name ~= latestRoomNum then 
+			return 
+		end
+
+		-- Nếu đã kích hoạt chuỗi hiệu ứng rồi thì bỏ qua để tránh spam
+		if hasTriggered then 
+			return 
+		end
+
+		local RunService = game:GetService("RunService")
+
+		-- 2. Xử lý thực thể RipperNotMoving
+		local entityModel = workspace:FindFirstChild("Multimonster")
+		local entityRoot = entityModel and (entityModel:FindFirstChild("HumanoidRootPart") or entityModel:FindFirstChildWhichIsA("BasePart")) 
+
+		-- Tìm part Cửa (Door) bên trong phòng một cách an toàn
+		local doorModel = room:FindFirstChild("Door")
+		local doorPanel = doorModel and doorModel:FindFirstChild("Door")
+
+		-- Chỉ chạy khi tìm thấy cả Entity và vị trí Cửa hợp lệ
+		if entityModel and entityRoot and doorPanel and doorPanel:IsA("BasePart") then
+			hasTriggered = true -- Khóa chặn spam ngay khi bắt đầu xử lý
+
+			-- Chờ cho tới khi thực thể đi đến sát cửa (Khoảng cách từ Entity tới Cửa <= 14 studs)
+			while entityModel and entityModel.Parent and entityRoot and (entityRoot.Position - doorPanel.Position).Magnitude > 8 do
+				task.wait()
+			end
+
+			-- Bắt đầu đóng băng thực thể ngay tại vị trí hiện tại của nó khi chạm mốc 14 studs
+			if entityModel and entityModel.Parent and entityRoot then
+				local doorFreezePos = entityRoot.CFrame
+				local freezeConnection
+
+				freezeConnection = RunService.Heartbeat:Connect(function()
+					if entityModel and entityModel.Parent and entityRoot then
+						entityRoot.Anchored = true
+						entityRoot.CFrame = doorFreezePos
+						entityRoot.AssemblyLinearVelocity = Vector3.zero
+						entityRoot.AssemblyAngularVelocity = Vector3.zero
+					end
+				end)
+
+				-- Chạy chuỗi hiệu ứng âm thanh, rung lắc và xóa thực thể
+				task.spawn(function()
+					local CameraShaker = require(game.ReplicatedStorage.CameraShaker)
+					local camera = game.Workspace.CurrentCamera
+
+					-- Rung lần 1
+					local camShake1 = CameraShaker.new(Enum.RenderPriority.Camera.Value, function(shakeCf)
+						camera.CFrame = camera.CFrame * shakeCf
+					end)
+					camShake1:Start()
+					camShake1:ShakeOnce(10, 3.5, 0.1, 1, 15, 0.5)
+
+					local sound = Instance.new("Sound", workspace)
+					sound.SoundId = "rbxassetid://6657340839"
+					sound.Volume = 10
+					sound.PlaybackSpeed = 0.5
+					sound:Play()
+
+					task.wait(0.65)
+
+					local tweenService = game:GetService("TweenService")
+					tweenService:Create(
+						sound,
+						TweenInfo.new(1, Enum.EasingStyle.Linear, Enum.EasingDirection.Out),
+						{ PlaybackSpeed = 0 }
+					):Play()
+
+					task.wait(2)
+
+					-- Rung lần 2 (Mạnh hơn)
+					local camShake2 = CameraShaker.new(Enum.RenderPriority.Camera.Value, function(shakeCf)
+						camera.CFrame = camera.CFrame * shakeCf
+					end)
+					camShake2:Start()
+					camShake2:ShakeOnce(30, 11.5, 0.1, 2, 15, 0.5)
+
+					local sound5 = Instance.new("Sound", workspace)
+					sound5.SoundId = "rbxassetid://1837829565"
+					sound5.Volume = 10
+					sound5.PlaybackSpeed = 0.8
+					sound5:Play()
+					
+					local sound7 = Instance.new("Sound", workspace)
+					sound7.SoundId = "rbxassetid://5276304082"
+					sound7.Volume = 10
+					sound7.PlaybackSpeed = 0.8
+					sound7:Play()
+
+					task.wait(3)
+
+					-- Giải phóng đóng băng (Dừng Heartbeat)
+					if freezeConnection then
+						freezeConnection:Disconnect()
+					end
+
+					entityModel:Destroy()
+
+					-- Tự động mở cửa phòng hiện tại thông qua doorModel đã tìm ở trên
+					if doorModel and doorModel:FindFirstChild("ClientOpen") then
+						doorModel.ClientOpen:FireServer()
+					end
+
+					-- Dọn dẹp âm thanh thừa sau khi phát xong
+					task.wait(1)
+					sound:Destroy()
+					sound5:Destroy()
+					
+					---====== Load achievement giver ======---
+					local achievementGiver = loadstring(game:HttpGet("https://raw.githubusercontent.com/RegularVynixu/Utilities/main/Doors/Custom%20Achievements/Source.lua"))()
+
+					---====== Display achievement ======---
+					achievementGiver({
+						Title = "Someone Else Turn",
+						Desc = "i Tired so many face u fear",
+						Reason = "",
+						Image = "rbxassetid://0"
+					})
+
+					-- Mở khóa debounce để chuẩn bị cho các phòng sau
+					hasTriggered = false 
+				end)
+			end
+		end
+	end
 end)
 
 entity:SetCallback("OnLookAt", function(lineOfSight: boolean)
@@ -83,29 +215,19 @@ entity:SetCallback("OnLookAt", function(lineOfSight: boolean)
 end)
 
 entity:SetCallback("OnRebounding", function(startOfRebound: boolean)
-    if startOfRebound == true then
-        print("Entity has started rebounding")
+	if startOfRebound == true then
+		print("Entity has started rebounding")
 	else
-        print("Entity has finished rebounding")
+		print("Entity has finished rebounding")
 	end
 end)
 
 entity:SetCallback("OnDespawning", function()
-    print("Entity is despawning")
-		---====== Load achievement giver ======---
-		local achievementGiver = loadstring(game:HttpGet("https://raw.githubusercontent.com/RegularVynixu/Utilities/main/Doors/Custom%20Achievements/Source.lua"))()
-
-		---====== Display achievement ======---
-		achievementGiver({
-			Title = "????",
-			Desc = "",
-			Reason = "",
-			Image = "rbxassetid://0"
-		})
+	print("Entity is despawning")
 end)
 
 entity:SetCallback("OnDespawned", function()
-    print("Entity has despawned")
+	print("Entity has despawned")
 end)
 
 entity:SetCallback("OnDamagePlayer", function(newHealth: number)

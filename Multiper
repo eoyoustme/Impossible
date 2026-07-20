@@ -25,7 +25,7 @@ local Spawner = loadstring(game:HttpGet("https://raw.githubusercontent.com/eoyou
 local entity = Spawner:Create({
 	Entity = {
 		Name = "Multiper",
-		Asset = "https://github.com/eoyoustme/Script/raw/main/Multimonster.rbxm?raw=true",
+		Asset = "https://github.com/eoyoustme/Impossible/blob/main/MultimonsterFace.rbxm?raw=true",
 		HeightOffset = 4
 	},
 	Lights = {

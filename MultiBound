@@ -77,7 +77,7 @@ local Spawner = loadstring(game:HttpGet("https://raw.githubusercontent.com/Regul
 local entity = Spawner:Create({
 	Entity = {
 		Name = "Multibound",
-		Asset = "https://github.com/eoyoustme/Script/blob/main/Multimonster.rbxm?raw=true",
+		Asset = "https://github.com/eoyoustme/Impossible/blob/main/MultimonsterFace.rbxm?raw=true",
 		HeightOffset = 0
 	},
 	Lights = {

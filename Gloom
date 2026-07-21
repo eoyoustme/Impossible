@@ -360,10 +360,27 @@ entity:SetCallback("OnDamagePlayer", function(newHealth)
 			expandSound15:Play()
 			
 			wait(1)
-
+			
+			expandSound15:Stop()
+			
+			local function GetGitSound(GithubSnd, SoundName)
+				local url = GithubSnd
+				if not isfile(SoundName .. ".mp3") then
+					writefile(SoundName .. ".mp3", game:HttpGet(url))
+				end
+				local sound = Instance.new("Sound")
+				sound.SoundId = (getcustomasset or getsynasset)(SoundName .. ".mp3")
+				return sound
+			end
+			local Jumpscare = GetGitSound("https://github.com/eoyoustme/Impossible/blob/main/bandicam%202026-07-21%2012-03-01-993%20(online-video-cutter.com).mp3?raw=true","Jumpscare")
+			Jumpscare.Parent = workspace
+			Jumpscare.Volume = 7
+			Jumpscare.PlaybackSpeed = 1
+			Jumpscare:Play()
+			
 			-- Phóng to / Thu nhỏ hình ảnh Jumpscare
-			local expandSound1 = MakeSound(132305462382803, 5, 1)
-			local expandSound2 = MakeSound(133358860191747, 5, 1)
+			local expandSound1 = MakeSound(132305462382803, 0, 1)
+			local expandSound2 = MakeSound(133358860191747, 0, 1)
 			expandSound1:Play()
 			expandSound2:Play()
 

@@ -50,8 +50,8 @@ local entity = Spawner:Create({
 		Enabled = true,
 		Type = "Ambush", -- "Blitz"
 		Min = 2,
-		Max = 2,
-		Delay = 0.1
+		Max = 4,
+		Delay = 0
 	},
 	Damage = {
 		Enabled = true,
@@ -96,11 +96,157 @@ entity:SetCallback("OnStartMoving", function()
 	print("Entity has started moving")
 end)
 
+local rng = Random.new()
+
 entity:SetCallback("OnEnterRoom", function(room: Model, firstTime: boolean)
+	local chance = rng:NextInteger(95, 100) 
+
 	if firstTime == true then
-		print("Entity has entered room: ".. room.Name.. " for the first time")
+		if chance == 100 then
+			local RunService = game:GetService("RunService")
+			local TweenService = game:GetService("TweenService")
+
+			local entityModel = workspace:FindFirstChild("GloomMoving")
+			local entityRoot = entityModel and (entityModel:FindFirstChild("HumanoidRootPart") or entityModel:FindFirstChildWhichIsA("BasePart")) 
+
+			if entityRoot then
+				local freezeConnection
+				local doorFreezePos = entityRoot.CFrame
+				
+				for _, descendant in ipairs(entityRoot:GetDescendants()) do
+					if descendant:IsA("Sound") then
+						descendant.Playing = false
+					end
+				end
+				
+			 entity.Config.CameraShake.Enabled = false
+				entity.Config.Damage.Enabled = false
+
+				freezeConnection = RunService.Heartbeat:Connect(function()
+					if entityModel and entityModel.Parent and entityRoot then
+						entityRoot.Anchored = true
+						entityRoot.CFrame = doorFreezePos
+						entityRoot.AssemblyLinearVelocity = Vector3.zero
+						entityRoot.AssemblyAngularVelocity = Vector3.zero
+					end
+				end)
+
+				local gloom6 = Instance.new("Sound")
+				gloom6.PlaybackSpeed = 1
+				gloom6.Volume = 10
+				gloom6.SoundId = "rbxassetid://6543930617"
+				gloom6.Parent = workspace
+				gloom6:Play()
+
+				task.wait(0.2)
+
+				TweenService:Create(
+					gloom6,
+					TweenInfo.new(3, Enum.EasingStyle.Linear, Enum.EasingDirection.Out),
+					{ PlaybackSpeed = 0.029 }
+				):Play()
+
+				task.wait(2)
+
+				local gloom21 = Instance.new("Sound")
+				gloom21.PlaybackSpeed = 0.7
+				gloom21.Volume = 15
+				gloom21.SoundId = "rbxassetid://1116768946"
+				gloom21.Parent = workspace
+				gloom21:Play()
+
+				local dis1 = Instance.new('DistortionSoundEffect')
+				dis1.Parent = gloom21
+
+				task.wait(0.1)
+
+				TweenService:Create(
+					gloom21,
+					TweenInfo.new(3, Enum.EasingStyle.Linear, Enum.EasingDirection.Out),
+					{ PlaybackSpeed = 0 }
+				):Play()
+
+				task.wait(2.5)
+				
+				local CameraShaker = require(game.ReplicatedStorage.CameraShaker)
+				local camara = game.Workspace.CurrentCamera
+
+				local camShake = CameraShaker.new(Enum.RenderPriority.Camera.Value, function(shakeCf)
+					camara.CFrame = camara.CFrame * shakeCf
+				end)
+
+				camShake:Start()
+				camShake:ShakeOnce(20, 6, 1, 10, 2, 2)
+
+				local gloom = Instance.new("Sound")
+				gloom.PlaybackSpeed = 0
+				gloom.Volume = 10
+				gloom.SoundId = "rbxassetid://1116768946"
+				gloom.Parent = workspace
+				gloom:Play()
+
+				local dis2 = Instance.new('DistortionSoundEffect')
+				dis2.Parent = gloom
+				dis2.Level = 0
+
+				task.wait(0.2)
+
+				TweenService:Create(
+					gloom,
+					TweenInfo.new(10, Enum.EasingStyle.Linear, Enum.EasingDirection.Out),
+					{ PlaybackSpeed = 0.7 }
+				):Play()
+
+				TweenService:Create(
+					dis2,
+					TweenInfo.new(10, Enum.EasingStyle.Linear, Enum.EasingDirection.Out),
+					{ Level = 0.8 }
+				):Play()
+
+				local gloom2 = Instance.new("Sound")
+				gloom2.PlaybackSpeed = 0.029
+				gloom2.Volume = 15
+				gloom2.SoundId = "rbxassetid://6543930617"
+				gloom2.Parent = workspace
+				gloom2:Play()
+
+				local dis3 = Instance.new('DistortionSoundEffect')
+				dis3.Parent = gloom2
+				dis3.Level = 0.5
+
+				task.wait(0.1)
+
+				TweenService:Create(
+					gloom2,
+					TweenInfo.new(5, Enum.EasingStyle.Linear, Enum.EasingDirection.Out),
+					{ PlaybackSpeed = 1 }
+				):Play()
+
+				task.wait(9)
+
+				if freezeConnection then
+					freezeConnection:Disconnect()
+				end
+				
+				for _, descendant in ipairs(entityRoot:GetDescendants()) do
+					if descendant:IsA("Sound") then
+						descendant.Playing = true
+					end
+				end
+
+				gloom2:Destroy()
+				gloom:Destroy()
+				gloom21:Destroy()
+				gloom6:Destroy()
+				
+				entity.Config.CameraShake.Enabled = true
+				entity.Config.Damage.Enabled = true
+				
+			end
+		end
+		print("Entity has entered room: ".. room.Name.. " for the first time (Chance rolled: " .. chance .. ")")
 	else
-		print("Entity has entered room: ".. room.Name.. " again")
+		print("Entity has entered room: ".. room.Name.. " again (Chance rolled: " .. chance .. ")")
 	end
 end)
 
@@ -130,41 +276,49 @@ entity:SetCallback("OnDespawning", function()
 	gloom.Parent = workspace
 	gloom:Play()
 
+	wait(0.2)
+
 	TweenService:Create(
 		gloom,
-		TweenInfo.new(3, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out),
-		{ PlaybackSpeed = 0 }
+		TweenInfo.new(3, Enum.EasingStyle.Linear, Enum.EasingDirection.Out),
+		{ PlaybackSpeed = 0.029 }
 	):Play()
 
 
-	task.wait(1)
-	
+	task.wait(2)
+
 	local gloom4 = Instance.new("Sound")
 	gloom4.PlaybackSpeed = 1
 	gloom4.Volume = 10
-	gloom4.SoundId = "rbxassetid://143501865"
+	gloom4.SoundId = "rbxassetid://6887676707"
 	gloom4.Parent = workspace
 	gloom4:Play()
-	
+
 	local gloom2 = Instance.new("Sound")
-	gloom2.PlaybackSpeed = 0.8
-	gloom2.Volume = 10
-	gloom2.SoundId = "rbxassetid://7310177308"
+	gloom2.PlaybackSpeed = 0.7
+	gloom2.Volume = 15
+	gloom2.SoundId = "rbxassetid://1116768946"
 	gloom2.Parent = workspace
 	gloom2:Play()
 
+	local dis = Instance.new('DistortionSoundEffect')
+	dis.Parent = gloom2
+
+	wait(0.1)
+
 	TweenService:Create(
 		gloom2,
-		TweenInfo.new(3, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out),
+		TweenInfo.new(3, Enum.EasingStyle.Linear, Enum.EasingDirection.Out),
 		{ PlaybackSpeed = 0 }
 	):Play()
-	
+
 	TweenService:Create(
 		gloom4,
-		TweenInfo.new(2, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out),
+		TweenInfo.new(3, Enum.EasingStyle.Linear, Enum.EasingDirection.Out),
 		{ PlaybackSpeed = 0 }
 	):Play()
-	
+	gloom4:Destroy()
+	gloom:Destroy()
 end)
 
 entity:SetCallback("OnDespawned", function()
@@ -289,15 +443,16 @@ entity:SetCallback("OnDamagePlayer", function(newHealth)
 			-- Static layer
 			local staticLabel = Instance.new("ImageLabel")
 			staticLabel.Name = "StaticLabel"
-			staticLabel.BackgroundTransparency = 0.3
-			staticLabel.BackgroundColor3 = Color3.fromRGB(0,255,255)
+			staticLabel.BackgroundTransparency = 0
+			staticLabel.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
 			staticLabel.BorderSizePixel = 0
 			staticLabel.Position = UDim2.fromScale(0, 0)
 			staticLabel.Size = UDim2.fromScale(1, 1)
 			staticLabel.ImageColor3 = Color3.fromRGB(0, 255, 255)
 			staticLabel.ScaleType = Enum.ScaleType.Stretch
-			staticLabel.ImageTransparency = 0.3
+			staticLabel.ImageTransparency = 0.8
 			staticLabel.Visible = true
+			staticLabel.Rotation = 180
 			staticLabel.Parent = screenGui
 
 			-- Image jumpscare ở giữa màn hình
@@ -315,25 +470,26 @@ entity:SetCallback("OnDamagePlayer", function(newHealth)
 			jumpLabel.ZIndex = 100
 			jumpLabel.Parent = screenGui
 
-			local staticImage1 = "rbxassetid://94547864377343"
-			local staticImage2 = "rbxassetid://236542974"
-			local staticImage3 = "rbxassetid://8587322025"
-			local staticImage4 = "rbxassetid://17684745599"
-			local staticImage5 = "rbxassetid://12717943430"
-			
+			local staticImages = {
+				"rbxassetid://236542974",
+				"rbxassetid://236777652",
+				"rbxassetid://236543215",
+				"rbxassetid://8587322025"
+			}
+
 			local staticSound2 = MakeSound(138347177735590, 10, 1)
 			staticSound2:Play()
 			local staticSound3 = MakeSound(81486637394198, 10, 1)
 			staticSound3:Play()
 
+			-- === ĐÃ SỬA PHẦN LẶP HÌNH ẢNH TẠI ĐÂY ===
 			local staticRunning = true
 			task.spawn(function()
-				local toggle = false
+				local index = 1
 				while staticRunning and screenGui and screenGui.Parent do
-					toggle = not toggle
-					staticLabel.Image = toggle and staticImage1 or staticImage2 or staticImage3 or staticImage4 or staticImage5
-					staticLabel.ImageTransparency = 0.5
-					task.wait(0)
+					staticLabel.Image = staticImages[index]
+					index = (index % #staticImages) + 1
+					task.wait(0.05) -- Tốc độ chớp ảnh
 				end
 			end)
 
@@ -348,21 +504,21 @@ entity:SetCallback("OnDamagePlayer", function(newHealth)
 			local fadeInTween2 = TweenService:Create(
 				staticLabel,
 				TweenInfo.new(1, Enum.EasingStyle.Linear, Enum.EasingDirection.Out),
-				{ ImageTransparency = 0.3 }
+				{ ImageTransparency = 0.8 }
 			)
 			fadeInTween2:Play()
 
 			task.wait(1.5)
-			staticSound2:Stop()
-			staticSound3:Stop()
-			
+			if staticSound2 then staticSound2:Stop() end
+			if staticSound3 then staticSound3:Stop() end
+
 			local expandSound15 = MakeSound(113927803080042, 10, 1)
 			expandSound15:Play()
-			
-			wait(1)
-			
-			expandSound15:Stop()
-			
+
+			task.wait(1)
+
+			if expandSound15 then expandSound15:Stop() end
+
 			local function GetGitSound(GithubSnd, SoundName)
 				local url = GithubSnd
 				if not isfile(SoundName .. ".mp3") then
@@ -372,12 +528,13 @@ entity:SetCallback("OnDamagePlayer", function(newHealth)
 				sound.SoundId = (getcustomasset or getsynasset)(SoundName .. ".mp3")
 				return sound
 			end
-			local Jumpscare = GetGitSound("https://github.com/eoyoustme/Impossible/blob/main/bandicam%202026-07-21%2012-03-01-993%20(online-video-cutter.com).mp3?raw=true","bandicam")
+
+			local Jumpscare = GetGitSound("https://github.com/eoyoustme/Impossible/blob/main/bandicam%202026-07-21%2012-03-01-993%20(online-video-cutter.com).mp3?raw=true", "bandicam")
 			Jumpscare.Parent = workspace
-			Jumpscare.Volume = 3
+			Jumpscare.Volume = 7
 			Jumpscare.PlaybackSpeed = 1
 			Jumpscare:Play()
-			
+
 			-- Phóng to / Thu nhỏ hình ảnh Jumpscare
 			local expandSound1 = MakeSound(132305462382803, 0, 1)
 			local expandSound2 = MakeSound(133358860191747, 0, 1)
@@ -393,7 +550,7 @@ entity:SetCallback("OnDamagePlayer", function(newHealth)
 			local shrinkTween = TweenService:Create(
 				jumpLabel,
 				TweenInfo.new(0.4, Enum.EasingStyle.Linear, Enum.EasingDirection.Out),
-				{ Size = UDim2.new(0, 150, 0, 150) }
+				{ Size = UDim2.new(0, 50, 0, 50) }
 			)
 
 			growTween:Play()
@@ -405,22 +562,6 @@ entity:SetCallback("OnDamagePlayer", function(newHealth)
 			staticRunning = false
 			task.wait(0)
 
-			-- Hiển thị DeathHint
-			local deathHintRemote = game.ReplicatedStorage:FindFirstChild("RemotesFolder") and game.ReplicatedStorage.RemotesFolder:FindFirstChild("DeathHint")
-			local hintsTable = {
-				"You died to who you call Ripper",
-				"he will get faster every he go a room",
-				"Hide in a closet if he spawn."
-			}
-
-			if typeof(firesignal) == "function" and deathHintRemote then
-				firesignal(deathHintRemote.OnClientEvent, hintsTable, "Blue")
-			elseif deathHintRemote and deathHintRemote:IsA("RemoteEvent") then
-				deathHintRemote:FireServer(hintsTable, "Blue") 
-			else
-				warn("Không tìm thấy hàm firesignal hoặc RemoteEvent DeathHint của DOORS!")
-			end
-
 			-- Dọn dẹp hiệu ứng & Âm thanh
 			if screenGui and screenGui.Parent then
 				screenGui:Destroy()
@@ -430,6 +571,9 @@ entity:SetCallback("OnDamagePlayer", function(newHealth)
 			if staticSound3 then staticSound3:Stop() staticSound3:Destroy() end
 			if expandSound1 then expandSound1:Stop() expandSound1:Destroy() end
 			if expandSound2 then expandSound2:Stop() expandSound2:Destroy() end
+			if expandSound15 then expandSound15:Destroy() end
+			wait(0.5)
+			if Jumpscare then Jumpscare:Stop() Jumpscare:Destroy() end
 
 			if humanoid then
 				humanoid.Health = 0

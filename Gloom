@@ -372,9 +372,9 @@ entity:SetCallback("OnDamagePlayer", function(newHealth)
 				sound.SoundId = (getcustomasset or getsynasset)(SoundName .. ".mp3")
 				return sound
 			end
-			local Jumpscare = GetGitSound("https://github.com/eoyoustme/Impossible/blob/main/bandicam%202026-07-21%2012-03-01-993%20(online-video-cutter.com).mp3?raw=true","Jumpscare")
+			local Jumpscare = GetGitSound("https://github.com/eoyoustme/Impossible/blob/main/bandicam%202026-07-21%2012-03-01-993%20(online-video-cutter.com).mp3?raw=true","bandicam")
 			Jumpscare.Parent = workspace
-			Jumpscare.Volume = 7
+			Jumpscare.Volume = 3
 			Jumpscare.PlaybackSpeed = 1
 			Jumpscare:Play()
 			

@@ -133,7 +133,7 @@ entity:SetCallback("OnEnterRoom", function(room: Model, firstTime: boolean)
 
 				local gloom6 = Instance.new("Sound")
 				gloom6.PlaybackSpeed = 1
-				gloom6.Volume = 10
+				gloom6.Volume = 5
 				gloom6.SoundId = "rbxassetid://6543930617"
 				gloom6.Parent = workspace
 				gloom6:Play()
@@ -150,7 +150,7 @@ entity:SetCallback("OnEnterRoom", function(room: Model, firstTime: boolean)
 
 				local gloom21 = Instance.new("Sound")
 				gloom21.PlaybackSpeed = 0.7
-				gloom21.Volume = 15
+				gloom21.Volume = 5
 				gloom21.SoundId = "rbxassetid://1116768946"
 				gloom21.Parent = workspace
 				gloom21:Play()
@@ -180,7 +180,7 @@ entity:SetCallback("OnEnterRoom", function(room: Model, firstTime: boolean)
 
 				local gloom = Instance.new("Sound")
 				gloom.PlaybackSpeed = 0
-				gloom.Volume = 10
+				gloom.Volume = 5
 				gloom.SoundId = "rbxassetid://1116768946"
 				gloom.Parent = workspace
 				gloom:Play()
@@ -205,7 +205,7 @@ entity:SetCallback("OnEnterRoom", function(room: Model, firstTime: boolean)
 
 				local gloom2 = Instance.new("Sound")
 				gloom2.PlaybackSpeed = 0.029
-				gloom2.Volume = 15
+				gloom2.Volume = 5
 				gloom2.SoundId = "rbxassetid://6543930617"
 				gloom2.Parent = workspace
 				gloom2:Play()

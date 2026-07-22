@@ -234,10 +234,10 @@ entity:SetCallback("OnEnterRoom", function(room: Model, firstTime: boolean)
 					end
 				end
 
-				gloom2:Destroy()
-				gloom:Destroy()
-				gloom21:Destroy()
-				gloom6:Destroy()
+		gloom2:Destroy()
+		gloom:Destroy()
+		gloom6:Destroy()
+		gloom21:Destroy()
 				
 				entity.Config.CameraShake.Enabled = true
 				entity.Config.Damage.Enabled = true

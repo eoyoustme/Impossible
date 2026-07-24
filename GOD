@@ -1,0 +1,198 @@
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local Debris = game:GetService("Debris")
+
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+local mainUI = playerGui:WaitForChild("MainUI", 5)
+local caption = mainUI and mainUI:FindFirstChild("MainFrame") and mainUI.MainFrame:FindFirstChild("Caption")
+
+local function GetGitSound(GithubSnd, SoundName)
+	local fileName = SoundName .. ".mp3"
+	if isfile and not isfile(fileName) then
+		pcall(function()
+			writefile(fileName, game:HttpGet(GithubSnd))
+		end)
+	end
+
+	local getasset = getcustomasset or getsynasset
+	if getasset and isfile and isfile(fileName) then
+		local sound = Instance.new("Sound")
+		sound.SoundId = getasset(fileName)
+		return sound
+	end
+	return nil
+end
+
+local god = GetGitSound("https://github.com/eoyoustme/Custom-Entity/blob/main/source.mp3?raw=true", "godgod")
+if god then
+	god.Parent = workspace
+	god.Volume = 6
+	god.PlaybackSpeed = 1
+	god.Name = "godis"
+	god:Play()
+end
+
+if caption then
+	caption.TextColor3 = Color3.fromRGB(255, 255, 255)
+	caption.TextTransparency = 0
+	caption.Visible = true
+end
+
+local value = 57
+
+local function updateCaption()
+	if caption then
+		caption.Text = tostring(value)
+	end
+end
+
+local function playTween()
+	if caption then
+		local info = TweenInfo.new(1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+		local tween = TweenService:Create(caption, info, {TextColor3 = Color3.fromRGB(85, 0, 0)})
+		tween:Play()
+	end
+end
+
+updateCaption()
+
+while value > 0 do
+	task.wait(1)
+	value -= 1
+	updateCaption()
+
+	if value == 30 then
+		playTween()
+	end
+end
+
+-- 👹 Khởi tạo Entity
+local success, objects = pcall(function()
+	return game:GetObjects("rbxassetid://16764081180")
+end)
+
+if not success or not objects or #objects == 0 then
+	warn("[GodIsHere]: Không thể tải Model từ Asset ID!")
+	return
+end
+
+local entity = objects[1]
+entity.Name = "G-100" 
+entity.Parent = workspace
+
+local part = entity:FindFirstChild("RushNew", true) or entity.PrimaryPart or entity:FindFirstChildWhichIsA("BasePart")
+if not part then
+	warn("[GodIsHere]: GOD IS HERE")
+	return
+end
+
+for _, soundName in ipairs({"PlaySound1", "PlaySound2", "PlaySound3"}) do
+	local s = part:FindFirstChild(soundName)
+	if s then s:Destroy() end
+end
+
+
+if caption then
+	caption.TextColor3 = Color3.fromRGB(255, 0, 0)
+	caption.Text = "G̪̈́̚O̙͚ͥD̵̷̫̗̥̤̰̙̠͎̟͖͎͉̥̻͔̟̘́ͫ̾ͪ͒ͪ̽̈̀ͦ̂́̉̃ͦ̒͑̿̃̏̕͜͡͝ I̶̩̳͚͙͎̪̖͎̞ͧ́͆̑ͣ̓ͯ̍̿̏́̾͘S̢̨̹̱͕̜͇͓͚̥͓̰̭ͭ͆ͭͨ̆̉͂͗̔͘͢͟͠͡ H̨̛̛̛͕͙̰̹̘̞̩͍̙̗̤̰̙̺̞̲͇̞̆ͯ͂ͦ̏̅̌ͧ͊̈́ͤ͑̚͝Ė̦_̴̝̭̆͌͗͆̾̏ͦR̷̷̡̗̤͈͙̗̳̘͆̓́͗̏̈́ͣ̍̔̅͢ͅE̫̒_̶̵̶̶̨̨͔̭͓͚̪̪̝̓͂̾̿̏ͧ͂̉͗ͧ͐͐̑̄̽̔̈̏̅̕͠ͅ"
+end
+
+local Reboundcolor = Instance.new("ColorCorrectionEffect")
+Reboundcolor.Name = "Warn"
+Reboundcolor.TintColor = Color3.fromRGB(255, 0, 0)
+Reboundcolor.Saturation = -0
+Reboundcolor.Contrast = 0
+Reboundcolor.Parent = game:GetService("Lighting")
+Debris:AddItem(Reboundcolor, 24)
+
+task.spawn(function()
+	while true do
+		wait(0.1)
+		local CameraShaker = require(game.ReplicatedStorage.CameraShaker)
+		local camara = game.Workspace.CurrentCamera
+		local camShake = CameraShaker.new(Enum.RenderPriority.Camera.Value, function(shakeCf)
+			camara.CFrame = camara.CFrame * shakeCf
+		end)
+		camShake:Start()
+		camShake:ShakeOnce(10,3,0.1,0.1,2,0.5)
+	end
+end)
+
+task.spawn(function()
+	local isAttacking = true
+
+	while isAttacking and entity and entity.Parent do
+		local character = player.Character
+		local hrp = character and character:FindFirstChild("HumanoidRootPart")
+		local hum = character and character:FindFirstChildOfClass("Humanoid")
+
+		if hrp and hum and hum.Health > 0 then
+			part.Anchored = true
+
+			local targetCFrame = hrp.CFrame
+			local distance = (targetCFrame.Position - part.Position).Magnitude
+			local SPEED_STUDS_PER_SECOND = 50
+			local duration = math.max(0.05, distance / SPEED_STUDS_PER_SECOND)
+
+			local tween = TweenService:Create(
+				part,
+				TweenInfo.new(duration, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut),
+				{CFrame = targetCFrame}
+			)
+			tween:Play()
+
+			if distance <= 18 then
+				isAttacking = false 
+
+				-- 🛑 BẮT ĐẦU JUMPSCARE
+				local camera = workspace.CurrentCamera
+				camera.CameraType = Enum.CameraType.Scriptable
+
+				-- Khóa di chuyển & điều khiển
+				local originalWalkSpeed = hum.WalkSpeed
+				local originalJumpPower = hum.JumpPower
+				hum.WalkSpeed = 0
+				hum.JumpPower = 0
+
+				local playerModule = player:FindFirstChild("PlayerScripts") and player.PlayerScripts:FindFirstChild("PlayerModule")
+				local controlsModule
+				if playerModule then
+					local success, ctrl = pcall(function() return require(playerModule):GetControls() end)
+					if success and ctrl then
+						controlsModule = ctrl
+						if controlsModule.Disable then controlsModule:Disable() end
+					end
+				end
+
+				local camTweenInfo = TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+				local camTween = TweenService:Create(camera, camTweenInfo, {
+					CFrame = CFrame.lookAt(camera.CFrame.Position, part.Position)
+				})
+				camTween:Play()
+
+				task.wait(0.5)
+
+				-- Giết Player
+				hum.Health = 0
+
+				task.wait(1)
+				camera.CameraType = Enum.CameraType.Custom
+
+				if entity and entity.Parent then
+					entity:Destroy()
+				end
+
+				if controlsModule and controlsModule.Enable then
+					controlsModule:Enable()
+				end
+
+				break
+			end
+
+			tween.Completed:Wait()
+		else
+			task.wait(0.5)
+		end
+	end
+end)

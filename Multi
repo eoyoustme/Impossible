@@ -18,6 +18,7 @@ local ENTITY_URLS = {
 	Silence = "https://raw.githubusercontent.com/eoyoustme/Impossible/refs/heads/main/Multilience",
 	Ripper  = "https://raw.githubusercontent.com/eoyoustme/Impossible/refs/heads/main/Multiper",
 	Deer    = "https://raw.githubusercontent.com/eoyoustme/Impossible/refs/heads/main/MultiGod"
+	Cease = "https://raw.githubusercontent.com/eoyoustme/Impossible/refs/heads/main/Multie"
 }
 
 local textspawn = {
@@ -262,7 +263,7 @@ end
 
 -- === Hàm gọi ngẫu nhiên 1 Thực thể bất kỳ ===
 local function spawnRandomEntity()
-	local choices = {"Halt", "Rebound", "Silence", "Ripper", "Deer"}
+	local choices = {"Halt", "Rebound", "Silence", "Ripper", "Deer", "Cease"}
 	local picked = choices[math.random(#choices)]
 
 	if picked == "Halt" then

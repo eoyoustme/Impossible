@@ -928,6 +928,6 @@ task.spawn(function()
 		end
 	end)
 
-	task.wait(160)
+	task.wait(80)
 	t.despawn(mockState, 3)
 end)

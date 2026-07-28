@@ -17,7 +17,7 @@ local ENTITY_URLS = {
 	Rebound = "https://raw.githubusercontent.com/eoyoustme/Impossible/refs/heads/main/MultiBound",
 	Silence = "https://raw.githubusercontent.com/eoyoustme/Impossible/refs/heads/main/Multilience",
 	Ripper  = "https://raw.githubusercontent.com/eoyoustme/Impossible/refs/heads/main/Multiper",
-	Deer    = "https://raw.githubusercontent.com/eoyoustme/Impossible/refs/heads/main/MultiGod"
+	Deer    = "https://raw.githubusercontent.com/eoyoustme/Impossible/refs/heads/main/MultiGod",
 	Cease = "https://raw.githubusercontent.com/eoyoustme/Impossible/refs/heads/main/Multie"
 }
 

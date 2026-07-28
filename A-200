@@ -1,0 +1,189 @@
+---====== Load spawner ======---
+
+local Spawner = loadstring(game:HttpGet("https://raw.githubusercontent.com/RegularVynixu/DOORS-Entity-Spawner-V2/main/init.luau"))()
+
+---====== Create entity ======---
+
+local entity = Spawner:Create({
+	Entity = {
+		Name = "A-200",
+		Asset = "https://github.com/eoyoustme/Extremely/blob/main/A-200.rbxm?raw=true",
+		HeightOffset = 0
+	},
+	Lights = {
+		Flicker = {
+			Enabled = true,
+			Duration = 5
+		},
+		Shatter = true,
+		Repair = false
+	},
+	Earthquake = {
+		Enabled = false
+	},
+	CameraShake = {
+		Enabled = true,
+		Range = 100,
+		Values = {1.5, 20, 0.1, 1} -- Magnitude, Roughness, FadeIn, FadeOut
+	},
+	Movement = {
+		Speed = 60,
+		Delay = 5,
+		Reversed = true
+	},
+	Rebounding = {
+		Enabled = true,
+		Type = "Ambush", -- "Blitz"
+		Min = 1,
+		Max = 1,
+		Delay = 2
+	},
+	Damage = {
+		Enabled = true,
+		Range = 10,
+		Amount = 125
+	},
+	Crucifixion = {
+		Enabled = true,
+		Range = 40,
+		Resist = false,
+		Break = true
+	},
+	Death = {
+		Type = "Guiding", -- "Curious"
+		Hints = {"You died to A-200", "When he spawns you need to hide", "He can track you when you are not hiding!", "Remember this"},
+		Cause = "A-200"
+	}
+})
+
+---====== Setup Services ======---
+
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local LocalPlayer = Players.LocalPlayer
+
+---====== Debug entity ======---
+
+entity:SetCallback("OnSpawned", function()
+	print("Entity has spawned")
+
+	pcall(function()
+		require(LocalPlayer.PlayerGui.MainUI.Initiator.Main_Game).caption("Player : Something isn't right", true)
+		task.wait(4)
+		require(LocalPlayer.PlayerGui.MainUI.Initiator.Main_Game).caption("HIDE", true)
+	end)
+	task.spawn(function()
+		task.wait(30)
+		game.Workspace["A-200"]:Destroy()
+	end)
+end)
+
+entity:SetCallback("OnStartMoving", function()
+	print("Entity has started moving")
+
+	task.spawn(function()
+		while entity and entity.Model and entity.Model.Parent do
+			local char = LocalPlayer.Character
+			local isHiding = char and char:GetAttribute("Hiding")
+
+			if not isHiding and char and char:FindFirstChild("HumanoidRootPart") then
+				local hrp = char.HumanoidRootPart
+
+				local model = entity.Model
+				local part = model.PrimaryPart or model:FindFirstChildWhichIsA("BasePart") or model:FindFirstChild("A-200")
+				part.CanCollide = false
+
+				if part then
+					local targetCFrame = hrp.CFrame
+					local distance = (targetCFrame.Position - part.Position).Magnitude
+					local SPEED_STUDS_PER_SECOND = 20
+					local duration = math.max(0.05, distance / SPEED_STUDS_PER_SECOND)
+
+					local tween = TweenService:Create(
+						part,
+						TweenInfo.new(duration, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut),
+						{CFrame = targetCFrame}
+					)
+					tween:Play()
+					tween.Completed:Wait()
+				else
+					task.wait(0.1)
+				end
+			else
+				task.wait(0.2)
+			end
+		end
+	end)
+end)
+
+entity:SetCallback("OnEnterRoom", function(room: Model, firstTime: boolean)
+	if firstTime == true then
+		print("Entity has entered room: ".. room.Name.. " for the first time")
+	else
+		print("Entity has entered room: ".. room.Name.. " again")
+	end
+end)
+
+entity:SetCallback("OnLookAt", function(lineOfSight: boolean)
+	if lineOfSight == true then
+		print("Player is looking at entity")
+	else
+		print("Player view is obstructed by something")
+	end
+end)
+
+entity:SetCallback("OnRebounding", function(startOfRebound: boolean)
+	if startOfRebound == true then
+		print("Entity has started rebounding")
+	else
+		print("Entity has finished rebounding")
+	end
+end)
+
+entity:SetCallback("OnDespawning", function()
+	print("Entity is despawning")
+end)
+
+entity:SetCallback("OnDespawned", function()
+	print("Entity has despawned")
+end)
+
+entity:SetCallback("OnDamagePlayer", function(newHealth: number)
+	if newHealth <= 0 then
+		print("Entity has killed the player")
+
+		local sound = Instance.new("Sound")
+		sound.SoundId = "rbxassetid://107732855391320"
+		sound.Volume = 10
+		sound.PlaybackSpeed = 1
+		sound.Parent = workspace
+		sound:Play()
+
+		local screenGui = Instance.new("ScreenGui")
+		screenGui.Name = "Aihoi"
+		screenGui.IgnoreGuiInset = true
+		screenGui.DisplayOrder = 999999
+		screenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
+
+		local imageLabel = Instance.new("ImageLabel")
+		imageLabel.BackgroundTransparency = 1
+		imageLabel.BorderSizePixel = 0
+		imageLabel.Position = UDim2.new(0, 0, 0, 0)
+		imageLabel.Size = UDim2.new(1, 0, 1, 0)
+		imageLabel.ScaleType = Enum.ScaleType.Stretch
+		imageLabel.ImageTransparency = 0
+		imageLabel.Image = "rbxassetid://16249498432"
+		imageLabel.Visible = true
+		imageLabel.Parent = screenGui
+
+		task.wait(5)
+		screenGui:Destroy()
+		sound:Destroy()
+	else
+		print("Entity has damaged the player")
+	end
+end)
+
+---====== Run entity ======---
+
+entity:Run(true)

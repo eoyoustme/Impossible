@@ -60,6 +60,7 @@ local entity = Spawner:Create({
 
 entity:SetCallback("OnSpawned", function()
 	print("Entity has spawned")
+	entity.Position = Vector3.new(0, 0, -1000)
 	
 	local function GetGitSound(GithubSnd, SoundName)
 		local url = GithubSnd

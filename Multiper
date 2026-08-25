@@ -92,7 +92,7 @@ local Spawner = loadstring(game:HttpGet("https://raw.githubusercontent.com/eoyou
 
 local entity = Spawner:Create({
 	Entity = {
-		Name = "MultiMonPer",
+		Name = "Multiper",
 		Asset = "https://github.com/eoyoustme/Pressure-Skid-Gay-/raw/main/MultiPng.rbxm",
 		HeightOffset = 2
 	},

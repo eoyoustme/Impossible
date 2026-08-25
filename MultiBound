@@ -1,4 +1,6 @@
 getgenv().OgHungerNewSpawner = nil 
+							local nottarget = workspace:WaitForChild("vauke")
+							nottarget:Destroy()
 
 local function GetGitSound(GithubSnd, SoundName)
 	local url = GithubSnd

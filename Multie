@@ -1,50 +1,114 @@
-game.ReplicatedStorage.GameData.LatestRoom.Changed:Wait()
+getgenv().OgHungerNewSpawner = nil 
 
-function light(tim,color0,color1)
-	local tweenservice = game:GetService("TweenService")
-	local info = TweenInfo.new(tim,Enum.EasingStyle.Linear)
-	for _ , light in pairs(game.Workspace.CurrentRooms:GetDescendants()) do
-		if light:IsA("Light") or light:IsA("SurfaceLight") or light:IsA("SpotLight") then
-			local target = {Color = color1}
-			local anim = tweenservice:Create(light,info,target)
-			anim:Play()
-		end
-		if light:IsA("MeshPart") and light.Material == Enum.Material.Neon  and light.Name ~= "Skybox" then
-			local target1 = {Color = color0}
-			local anim2 = tweenservice:Create(light,info,target1)
-			anim2:Play()
-		end
-	end
+local tw
+
+local success, Spawner = pcall(function()
+	return loadstring(game:HttpGet("https://raw.githubusercontent.com/eoyoustme/Mayhem-Remake/refs/heads/main/OgHungerNewSpawner"))()
+end)
+
+if not success or not Spawner then
+	return
 end
 
----====== Load spawner ======---
-local spawner = loadstring(game:HttpGet("https://raw.githubusercontent.com/RegularVynixu/Utilities/main/Doors/Entity%20Spawner/V2/Source.lua"))()
-
----====== Create entity ======---
-local entity = spawner.Create({
+local entity = Spawner:Create({
 	Entity = {
-		Name = "Multie",
-		Asset = "https://github.com/eoyoustme/Impossible/blob/main/MultimonsterFace.rbxm?raw=true",
-		HeightOffset = 0
+		Name = "Multimoving",
+		Asset = "https://github.com/eoyoustme/Pressure-Skid-Gay-/blob/main/MultiPng.rbxm?raw=true",
+		HeightOffset = -2
 	},
 	Lights = {
-		Flicker = { Enabled = false, Duration = 7 },
-		Shatter = false,
+		Flicker = {
+			Enabled = false,
+			Duration = 1
+		},
+		Shatter = true,
 		Repair = false
 	},
-	Earthquake = { Enabled = false },
+	Earthquake = {
+		Enabled = false
+	},
+	Spawned = {
+		ChangeColorWhenSpawn = false, 
+		Rainbow = false,              
+		Color = Color3.fromRGB(0, 85, 255)
+	},
 	CameraShake = {
 		Enabled = true,
 		Range = 100,
-		Values = {3, 3, 2, 2}
+		Values = {1.5, 20, 0.1, 1}
 	},
+
 	Movement = {
-		Speed = 40,
-		Delay = 0,
-		Reversed = false
+		Speed = 70,
+		SpeedFast = 270,                  
+		MoveFastNotEnter = true,            
+		Delay = 5,
+		Reversed = false,                  
+		EndWhenEnterLatestRoom = false,   
+		EndDelay = 0,
+
+		ReboundMoving = false,          
+		TweenSecond = 1.5,            
+
+		ReboundMoveStyle = false,      
+		ReboundStyleTimes = 5,        
+		ReboundStyleSound = "rbxassetid://9114221327", 
+		ReboundStyleVolume = 5,
+		ReboundStyleDelay = 2, 
+
+		ChasePlayerWhenSee = false,
+		SpeedWhenChase = 35
 	},
-	Rebounding = { Enabled = false },
-	Damage = { Enabled = false },
+
+	Jumpscare = {
+		Enabled = false,
+		Image1 = "rbxassetid://11253398403", 
+		Image2 = "rbxassetid://12293509957",
+		Sound1 = "rbxassetid://0", 
+		Sound2 = "rbxassetid://109582246349306", 
+		Tease = {
+			[1] = true,
+			Min = 1,
+			Max = 1
+		},
+		Flashing = {
+			[1] = true,
+			[2] = Color3.fromRGB(255, 255, 255)
+		},
+		Shake = true
+	},
+	Rebounding = {
+		Enabled = false,
+		Type = "Ambush",
+		Min = 1,
+		Max = 1,
+		Delay = 2
+	},
+	Damage = {
+		Enabled = false,
+		KillOnMove = false,            
+		Range = 40,
+		Amount = 125,
+		IgnoreHiding = false,
+
+		JumpscareRipper = {
+			Enabled = false,
+			TargetPartName = "Ripe",
+			AttachmentName = "ripe",
+			ParticleName = "ParticleEmitter",
+			ParticleTexture = "rbxassetid://12737595583",
+			SoundUrl = "https://github.com/eoyoustme/back/raw/main/Kill_with_static.mp3",
+			SlamSoundId = "rbxassetid://0",
+			EndSoundId = "rbxassetid://4988621968",
+			Images = {
+				"rbxassetid://8482795900",
+				"rbxassetid://236542974",
+				"rbxassetid://184251462",
+				"rbxassetid://236777652"
+			},
+			FlashDuration = 1.6
+		}
+	},
 	Crucifixion = {
 		Enabled = true,
 		Range = 40,
@@ -53,99 +117,287 @@ local entity = spawner.Create({
 	},
 	Death = {
 		Type = "Guiding",
-		Hints = {
-			"Bạn đã chết bởi Cease.",
-			"Khi Cease xuất hiện, đừng di chuyển nếu không bạn sẽ chết."
-		},
-		Cause = "Multie"
+		Hints = {""},
+		Cause = "[]}0()[]][][]]1[]]["
 	}
 })
 
----====== On Spawn ======---
 entity:SetCallback("OnSpawned", function()
-	print("Cease đã xuất hiện")
+	local hiding = game.Players.LocalPlayer.Character
+	local ishiding = hiding:GetAttributes("Hiding")
+	local function light(tim, color0, color1)
+		local Tweenservice = game:GetService("TweenService")
+		local info = TweenInfo.new(tim, Enum.EasingStyle.Linear)
+		local currentRooms = workspace.CurrentRooms
+		if not currentRooms then return end
 
-	light(2,Color3.fromRGB(127, 249, 255),Color3.fromRGB(0, 45, 185))
+		for _, instance in ipairs(currentRooms:GetDescendants()) do
+			if instance:IsA("Light") or instance:IsA("SurfaceLight") or instance:IsA("SpotLight") then
+				Tweenservice:Create(instance, info, {Color = color1}):Play()
+			elseif instance:IsA("MeshPart") and instance.Material == Enum.Material.Neon and instance.Name ~= "Skybox" then
+				Tweenservice:Create(instance, info, {Color = color0}):Play()
+			end
+		end
+	end
+	light(2, Color3.fromRGB(127, 249, 255), Color3.fromRGB(155, 155, 255))
 
-	-- === BẮT ĐẦU KIỂM TRA DI CHUYỂN CHUẨN XÁC === --
-	local Players = game:GetService("Players")
-	local RunService = game:GetService("RunService")
+	task.spawn(function()
+		while true do
+			task.wait(0.3)
 
-	-- đảm bảo Cease chính xác có model
-	repeat task.wait() until entity.Model
-	local ceaseModel = entity.Model
+			local player = game.Players.LocalPlayer
+			local char = player.Character
+			local hum = char and char:FindFirstChildOfClass("Humanoid")
+			local hrp = char and char:FindFirstChild("HumanoidRootPart")
 
-	local hitboxRange = 120
+			if hum and hrp and (hrp.Position - entity.Model.Multi.Position).Magnitude <= 6 then
+				game.Players.LocalPlayer.Character.Humanoid.Health -= 1500
+				local Players = game:GetService("Players")
+				local player = Players.LocalPlayer
+				local playergui = player:WaitForChild("PlayerGui")
 
-	local params = RaycastParams.new()
-	params.FilterType = Enum.RaycastFilterType.Blacklist
-	params.FilterDescendantsInstances = {ceaseModel}
+				local screenGui = Instance.new("ScreenGui")
+				screenGui.Name = "FlashOverlay"
+				screenGui.IgnoreGuiInset = true
+				screenGui.Parent = playergui
 
-	local raycastLoop
-	raycastLoop = RunService.Heartbeat:Connect(function()
-		local origin = ceaseModel:GetPivot().Position
+				local frame = Instance.new("Frame")
+				frame.Size = UDim2.new(1, 0, 1, 0)
+				frame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+				frame.BackgroundTransparency = 0
+				frame.BorderSizePixel = 0
+				frame.Parent = screenGui
 
-		for _, player in ipairs(Players:GetPlayers()) do
-			local chr = player.Character
-			if chr and chr:FindFirstChild("HumanoidRootPart") and chr:FindFirstChild("Humanoid") then
+				local originalVolumes = {}
 
-				local hrp = chr.HumanoidRootPart
-				local humanoid = chr.Humanoid
+				for _, descendant in ipairs(game:GetDescendants()) do
+					if descendant:IsA("Sound") then
+						originalVolumes[descendant] = descendant.Volume
+						descendant.Volume = 0
+					end
+				end
 
-				-- Raycast
-				local direction = (hrp.Position - origin).Unit
-				local rayResult = workspace:Raycast(origin, direction * hitboxRange, params)
+				task.wait(3)
 
-				if rayResult and rayResult.Instance and rayResult.Instance:IsDescendantOf(chr) then
 
-					-- KIỂM TRA DI CHUYỂN CHUẨN
-					local isMovingByInput = humanoid.MoveDirection.Magnitude > 0.1
-					local isMovingByVelocity = hrp.AssemblyLinearVelocity.Magnitude > 2
+				for sound, oldVolume in pairs(originalVolumes) do
+					if sound and sound.Parent then
+						sound.Volume = oldVolume
+					end
+				end
 
-					-- Chỉ giết khi cả hai đều đúng
-					if isMovingByInput and isMovingByVelocity and humanoid.Health > 0  then
-						humanoid.Health = 0
-						local sound = Instance.new("Sound")
-						sound.SoundId = "rbxassetid://4988621968"
-						sound.Volume = 10
-						sound.PlaybackSpeed = 0.7
-						sound.Parent = workspace
-						sound:Play()
+				screenGui:Destroy()
+				game:GetService("ReplicatedStorage").GameStats["Player_".. game.Players.LocalPlayer.Name].Total.DeathCause.Value = "{}0()[]][][]]1[]]["
+			end
+		end
+	end)
+	local is = true
+	task.spawn(function()
+		local sound5 = Instance.new("Sound")
+		sound5.PlaybackSpeed = 1
+		sound5.Volume = 6
+		sound5.SoundId = "rbxassetid://166047422"
+		sound5.Parent = workspace
+		sound5:Play()
 
-						print(player.Name .. " bị Cease giết vì di chuyển!")
 
-						-- đánh dấu nguyên nhân chết
-						local statsFolder = game.ReplicatedStorage:FindFirstChild("GameStats")
-						if statsFolder then
-							local playerStats = statsFolder:FindFirstChild("Player_" .. player.Name)
-							if playerStats and playerStats:FindFirstChild("Total") and playerStats.Total:FindFirstChild("DeathCause") then
-								playerStats.Total.DeathCause.Value = "Cease"
+		local sound51 = Instance.new("Sound")
+		sound51.PlaybackSpeed = 1
+		sound51.Volume = 2
+		sound51.SoundId = "rbxassetid://9125632539"
+		sound51.Parent = workspace
+		sound51:Play()
+
+		task.spawn(function()
+			while is do
+				local chance = math.random(50,100)
+				wait(Random.new():NextNumber(0.125,0.25))
+				sound5.PlaybackSpeed = Random.new():NextNumber(0.5,1)
+				if chance == 100 then
+					sound5.SoundId = "rbxassetid://140043289814504"
+					wait(math.random(0.1,0.2))
+					sound5.SoundId = "rbxassetid://166047422"
+				end
+			end
+		end)
+		task.spawn(function()
+			while is do
+				local chance = math.random(50,100)
+				wait(Random.new():NextNumber(0.125,0.25))
+				sound51.PlaybackSpeed = Random.new():NextNumber(0.5,1)
+				if chance == 100 then
+					sound51.SoundId = "rbxassetid://140043289814504"
+					wait(math.random(0.1,0.2))
+					sound51.SoundId = "rbxassetid://9125632539"
+				end
+			end
+		end)
+		task.wait(5)
+		is = false
+		sound5:Destroy()
+		sound51:Destroy()
+	end)
+	task.spawn(function()
+		repeat task.wait() until entity.Model
+		local ceaseModel = entity.Model
+
+		local hitboxRange = 40
+
+		local params = RaycastParams.new()
+		params.FilterType = Enum.RaycastFilterType.Blacklist
+		params.FilterDescendantsInstances = {ceaseModel}
+
+		local raycastLoop
+		raycastLoop = game:GetService("RunService").Heartbeat:Connect(function()
+			local origin = ceaseModel:GetPivot().Position
+
+			for _, player in ipairs(game.Players:GetPlayers()) do
+				local chr = player.Character
+				if chr and chr:FindFirstChild("HumanoidRootPart") and chr:FindFirstChild("Humanoid") then
+
+					local hrp = chr.HumanoidRootPart
+					local humanoid = chr.Humanoid
+
+					local direction = (hrp.Position - origin).Unit
+					local rayResult = workspace:Raycast(origin, direction * hitboxRange, params)
+
+					if rayResult and rayResult.Instance and rayResult.Instance:IsDescendantOf(chr) then
+
+						local isMovingByInput = humanoid.MoveDirection.Magnitude > 0.1
+						local isMovingByVelocity = hrp.AssemblyLinearVelocity.Magnitude > 2
+
+						if isMovingByInput and isMovingByVelocity then
+							humanoid.Health = 0
+							local Players = game:GetService("Players")
+							local player = Players.LocalPlayer
+							local playergui = player:WaitForChild("PlayerGui")
+
+							local screenGui = Instance.new("ScreenGui")
+							screenGui.Name = "FlashOverlay"
+							screenGui.IgnoreGuiInset = true
+							screenGui.Parent = playergui
+
+							local frame = Instance.new("Frame")
+							frame.Size = UDim2.new(1, 0, 1, 0)
+							frame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+							frame.BackgroundTransparency = 0
+							frame.BorderSizePixel = 0
+							frame.Parent = screenGui
+
+							local originalVolumes = {}
+
+							for _, descendant in ipairs(game:GetDescendants()) do
+								if descendant:IsA("Sound") then
+									originalVolumes[descendant] = descendant.Volume
+									descendant.Volume = 0
+								end
+							end
+
+							task.wait(3)
+
+
+							for sound, oldVolume in pairs(originalVolumes) do
+								if sound and sound.Parent then
+									sound.Volume = oldVolume
+								end
+							end
+
+							screenGui:Destroy()
+
+							local statsFolder = game.ReplicatedStorage:FindFirstChild("GameStats")
+							if statsFolder then
+								local playerStats = statsFolder:FindFirstChild("Player_" .. player.Name)
+								if playerStats and playerStats:FindFirstChild("Total") and playerStats.Total:FindFirstChild("DeathCause") then
+									playerStats.Total.DeathCause.Value = "{}0()[]][][]]1[]]["
+								end
 							end
 						end
 					end
 				end
 			end
-		end
-	end)
-
-	---====== On Despawn ======---
-	entity:SetCallback("OnDespawning", function()
-		print("Cease đã biến mất")
-
-		if raycastLoop then
-			raycastLoop:Disconnect()
-		end
+			end)
 	end)
 end)
 
----====== Damage Callback ======---
-entity:SetCallback("OnDamagePlayer", function(newHealth)
-	if newHealth == 0 then
-		print("Cease đã giết người chơi")
-	else
-		print("Cease gây sát thương")
+entity:SetCallback("OnStartMoving", function()
+
+end)
+
+entity:SetCallback("OnEnterRoom", function(room: Model, firstTime: boolean)
+
+end)
+
+entity:SetCallback("OnNotReachedLatestRoom", function(room: Model, latestRoom: Model)
+end)
+
+entity:SetCallback("OnReachedLatestRoom", function(room: Model)
+end)
+
+entity:SetCallback("OnLeftLatestRoom", function(room: Model)
+
+end)
+
+entity:SetCallback("OnLookAt", function(lineOfSight: boolean)
+
+end)
+
+entity:SetCallback("OnRebounding", function(startOfRebound: boolean)
+
+end)
+
+entity:SetCallback("PlayerGetSee", function()
+
+end)
+
+entity:SetCallback("EndWhenGO", function()
+
+end)
+
+entity:SetCallback("OnDespawning", function()
+end)
+
+entity:SetCallback("OnDespawned", function()
+
+end)
+
+entity:SetCallback("OnDamagePlayer", function(newHealth: number)
+	local Players = game:GetService("Players")
+	local player = Players.LocalPlayer
+	local playergui = player:WaitForChild("PlayerGui")
+
+	local screenGui = Instance.new("ScreenGui")
+	screenGui.Name = "FlashOverlay"
+	screenGui.IgnoreGuiInset = true
+	screenGui.Parent = playergui
+
+	local frame = Instance.new("Frame")
+	frame.Size = UDim2.new(1, 0, 1, 0)
+	frame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+	frame.BackgroundTransparency = 0
+	frame.BorderSizePixel = 0
+	frame.Parent = screenGui
+
+	local originalVolumes = {}
+
+	for _, descendant in ipairs(game:GetDescendants()) do
+		if descendant:IsA("Sound") then
+			originalVolumes[descendant] = descendant.Volume
+			descendant.Volume = 0
+		end
 	end
+
+	task.wait(3)
+
+
+	for sound, oldVolume in pairs(originalVolumes) do
+		if sound and sound.Parent then
+			sound.Volume = oldVolume
+		end
+	end
+
+	screenGui:Destroy()
 end)
 
----====== Run entity ======---
-entity:Run()
+---====== Run Entity ======---
+
+entity:Run(true)

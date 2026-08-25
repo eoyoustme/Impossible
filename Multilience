@@ -1,3 +1,5 @@
+							local nottarget = workspace:WaitForChild("vauke")
+							nottarget:Destroy()
 -- Services
 local TweenService = game:GetService("TweenService")
 local Players = game:GetService("Players")

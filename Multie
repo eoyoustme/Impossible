@@ -1,3 +1,5 @@
+							local nottarget = workspace:WaitForChild("vauke")
+							nottarget:Destroy()
 getgenv().OgHungerNewSpawner = nil 
 
 local tw

@@ -70,67 +70,71 @@ end
 -- Bộ ký tự Glitch
 local GLITCH_CHARS = "[]{}0(0*#21!@#$%^&*()_+-=/<>?:;10"
 
--- Hàm sinh chữ Glitch nhanh không tạo rác bộ nhớ
-local function QuickGlitchText(length: number): string
-	local result = table.create(length)
+local function GenerateGlitchText(length: number): string
+	local str = table.create(length)
 	for i = 1, length do
 		local r = math.random(1, #GLITCH_CHARS)
-		result[i] = string.sub(GLITCH_CHARS, r, r)
+		str[i] = string.sub(GLITCH_CHARS, r, r)
 	end
-	return table.concat(result)
+	return table.concat(str)
 end
 
--- Hiệu ứng Glitch siêu nhẹ
-local function ApplyFastGlitch(parentFrame, originalTitle, originalDesc)
+-- Hiệu ứng Glitch đen che chữ mượt không gây lag
+local function ApplyGlitchEffect(frame, originalTitle, originalDesc)
 	task.spawn(function()
 		local titleLabel, descLabel
 
-		for _, obj in ipairs(parentFrame:GetDescendants()) do
+		for _, obj in ipairs(frame:GetDescendants()) do
 			if obj:IsA("TextLabel") then
-				if obj.Text == originalTitle or obj.Name:lower():find("title") then
+				if obj.Text == originalTitle then
 					titleLabel = obj
-				elseif obj.Text == originalDesc or obj.Name:lower():find("desc") then
+				elseif obj.Text == originalDesc then
 					descLabel = obj
 				end
 			end
 		end
 
-		local overlayContainer = Instance.new("Frame")
-		overlayContainer.Name = "GlitchOverlayContainer"
-		overlayContainer.Size = UDim2.new(1, 0, 1, 0)
-		overlayContainer.BackgroundTransparency = 1
-		overlayContainer.ZIndex = 100
-		overlayContainer.Parent = parentFrame
+		local overlay = Instance.new("Frame")
+		overlay.Name = "GlitchOverlay"
+		overlay.Size = UDim2.new(1, 0, 1, 0)
+		overlay.BackgroundTransparency = 1
+		overlay.ZIndex = 999
+		overlay.Parent = frame
 
-		-- Tạo sẵn 3 thanh vạch đen
-		local barPool = {}
-		for b = 1, 3 do
-			local bar = Instance.new("Frame")
-			bar.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-			bar.BorderSizePixel = 0
-			bar.ZIndex = 101
-			bar.Visible = false
-			bar.Parent = overlayContainer
-			table.insert(barPool, bar)
+		-- Tạo sẵn 4 thanh vạch đen (Tái sử dụng Frame)
+		local bars = {}
+		for i = 1, 4 do
+			local b = Instance.new("Frame")
+			b.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+			b.BorderSizePixel = 0
+			b.ZIndex = 1000
+			b.Visible = false
+			b.Parent = overlay
+			table.insert(bars, b)
 		end
 
-		-- Giảm số lần lặp xuống 5 lần để đảm bảo 60 FPS
-		for i = 1, 5 do
-			for _, bar in ipairs(barPool) do
-				bar.Size = UDim2.new(math.random(30, 90) / 100, 0, math.random(15, 30) / 100, 0)
-				bar.Position = UDim2.new(math.random(0, 35) / 100, 0, math.random(10, 70) / 100, 0)
-				bar.Visible = math.random() > 0.3
+		-- Chạy hiệu ứng nhấp nháy 8 lần (khoảng 0.4s)
+		for i = 1, 8 do
+			for _, b in ipairs(bars) do
+				if math.random() > 0.35 then
+					b.Size = UDim2.new(math.random(20, 85) / 100, 0, math.random(10, 30) / 100, 0)
+					b.Position = UDim2.new(math.random(5, 45) / 100, 0, math.random(10, 75) / 100, 0)
+					b.Visible = true
+				else
+					b.Visible = false
+				end
 			end
 
-			if titleLabel then titleLabel.Text = QuickGlitchText(#originalTitle) end
-			if descLabel then descLabel.Text = QuickGlitchText(#originalDesc) end
+			if titleLabel then titleLabel.Text = GenerateGlitchText(#originalTitle) end
+			if descLabel then descLabel.Text = GenerateGlitchText(#originalDesc) end
 
-			task.wait(0.08)
+			task.wait(0.05)
 		end
 
+		-- Trả về chữ gốc và xóa overlay
 		if titleLabel then titleLabel.Text = originalTitle end
 		if descLabel then descLabel.Text = originalDesc end
-		overlayContainer:Destroy()
+		overlay:Destroy()
 	end)
 end
 
@@ -182,41 +186,42 @@ Module.Grant = function(self, achievementConfig: AchievementConfig, options: Opt
 		local name = "CustomAchievement_"..tick()
 		Modules.Achievements[name] = achievement
 
-		local targetContainer = PlayerGui:FindFirstChild("MainUI") or PlayerGui
 		local connection
-
-		-- Chỉ lắng nghe sự kiện khi UI Achievement thực sự xuất hiện
-		connection = targetContainer.ChildAdded:Connect(function(child)
-			task.wait(0.02)
-			
-			local frame = child:IsA("Frame") and child or child:FindFirstChildWhichIsA("Frame", true)
-			if frame then
+		-- Nhận diện cực nhanh bằng cách lọc đúng TextLabel của Title
+		connection = PlayerGui.DescendantAdded:Connect(function(desc)
+			if desc:IsA("TextLabel") and desc.Text == achievement.Title then
+				-- Ngắt kết nối ngay lập tức để không quét UI khác (Triệt hạ lag)
 				if connection then
 					connection:Disconnect()
 					connection = nil
 				end
 
-				-- Đổi màu viền UIStroke & Text sang Đỏ
-				for _, item in ipairs(frame:GetDescendants()) do
+				local mainFrame = desc:FindFirstAncestorOfClass("Frame") or desc:FindFirstAncestorOfClass("CanvasGroup")
+				if not mainFrame then return end
+
+				task.wait(0.02)
+
+				-- ĐỔI MÀU ĐỎ VIỀN VÀ CHỮ
+				for _, item in ipairs(mainFrame:GetDescendants()) do
 					if item:IsA("UIStroke") then
 						item.Color = Color3.fromRGB(255, 0, 0)
 					elseif item:IsA("TextLabel") then
-						local textLower = item.Text:lower()
-						if textLower:find("unlock") or textLower:find("achievement") then
+						local txt = item.Text:lower()
+						if txt:find("unlock") or txt:find("achievement") or item == desc then
 							item.TextColor3 = Color3.fromRGB(255, 0, 0)
 						end
 					end
 				end
 
-				-- Kích hoạt Glitch
-				ApplyFastGlitch(frame, achievement.Title, achievement.Desc)
+				-- KÍCH HOẠT HIỆU ỨNG GLITCH ĐEN CHE CHỮ
+				ApplyGlitchEffect(mainFrame, achievement.Title, achievement.Desc)
 			end
 		end)
 
 		Modules:AchievementUnlock(name)
 		Modules.Achievements[name] = nil
 
-		task.delay(1, function()
+		task.delay(3, function()
 			if connection then
 				connection:Disconnect()
 			end

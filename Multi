@@ -377,7 +377,7 @@ local function SafePlayJumpscare()
 		pcall(function()
 			local Jumpscare = GetGitSound("https://raw.githubusercontent.com/eoyoustme/Pressure-Skid-Gay-/main/bandicam%202026-08-24%2020-36-50-742.mp3", "flashback")
 			Jumpscare.Parent = workspace
-			Jumpscare.Volume = 3
+			Jumpscare.Volume = 6
 			Jumpscare.PlaybackSpeed = 1
 			Jumpscare.Name = "ai55Hoi"
 			Jumpscare:Play()
@@ -434,185 +434,53 @@ a = task.spawn(function()
 			local rng = Random.new(seed + (spawnStepA * 100))
 			local selectedEntity = SelectRandomEntity(rng)
 
-			if selectedEntity == "Deer God" then
-				if workspace:FindFirstChild("MultiMoving") or workspace:FindFirstChild("Multiilence") or workspace:FindFirstChild("Multiper") or workspace:FindFirstChild("MultiBound") then
-					if workspace:FindFirstChild("MultiMoving") then
-						workspace.MultiMoving:Destroy()
-					else
-						warn("noone")
+			local ENTITY_URLS_MAP = {
+				["Deer God"] = ENTITY_URLS.Deer,
+				["Ripper"]   = ENTITY_URLS.Ripper,
+				["Cease"]    = ENTITY_URLS.Cease,
+				["Bounder"]  = ENTITY_URLS.Rebound,
+				["Silence"]  = ENTITY_URLS.Silence
+			}
+
+			local url = ENTITY_URLS_MAP[selectedEntity]
+
+			if url then
+				local targets = {"MultiMoving", "Multiilence", "Multiper", "MultiBound", "MultiGod"}
+				local hasAny = false
+
+				for _, name in ipairs(targets) do
+					if workspace:FindFirstChild(name) then
+						hasAny = true
+						break
 					end
-					if workspace:FindFirstChild("Multiilence") then
-						workspace.Multiilence:Destroy()
-					else
-						warn("noone")
-					end
-					if workspace:FindFirstChild("Multiper") then
-						workspace.Multiper:Destroy()
-					else
-						warn("noone")
-					end
-					if workspace:FindFirstChild("MultiBound") then
-						workspace.MultiBound:Destroy()
-					else
-						warn("noone")
-					end
-					A60Change()
-					SafePlayJumpscare()
-					loadstring(game:HttpGet(ENTITY_URLS.Deer))()
-				else
-					local vaule = Instance.new("BoolValue", workspace)
-					vaule.Name = "vauke"
-					vaule.Value = true
-					loadstring(game:HttpGet(ENTITY_URLS.Deer))()
 				end
-			elseif selectedEntity == "Ripper" then
-				if workspace:FindFirstChild("MultiMoving") or workspace:FindFirstChild("Multiilence") or workspace:FindFirstChild("MultiGod") or workspace:FindFirstChild("MultiBound") then
-					if workspace:FindFirstChild("MultiMoving") then
-						workspace.MultiMoving:Destroy()
-					else
-						warn("noone")
-					end
-					if workspace:FindFirstChild("Multiilence") then
-						workspace.Multiilence:Destroy()
-					else
-						warn("noone")
-					end
-					if workspace:FindFirstChild("MultiGod") then
-						workspace.MultiGod:Destroy()
-						if workspace:FindFirstChild("Your") then
-							workspace.Your:Destroy()
+
+				if hasAny then
+					for _, name in ipairs(targets) do
+						local child = workspace:FindFirstChild(name)
+						if child then
+							child:Destroy()
+							if name == "MultiGod" then
+								local your = workspace:FindFirstChild("Your")
+								if your then
+									your:Destroy()
+								else
+									warn("NOMUCISCDEERGODINTOHEAVENM")
+								end
+							end
 						else
-							warn("NOMUCISCDEERGODINTOHEAVENM")
+							warn("noone")
 						end
-					else
-						warn("noone")
-					end
-					if workspace:FindFirstChild("MultiBound") then
-						workspace.MultiBound:Destroy()
-					else
-						warn("noone")
 					end
 					A60Change()
-					loadstring(game:HttpGet(ENTITY_URLS.Ripper))()
 				else
-					local vaule = Instance.new("BoolValue", workspace)
+					local vaule = Instance.new("BoolValue")
 					vaule.Name = "vauke"
 					vaule.Value = true
-					loadstring(game:HttpGet(ENTITY_URLS.Ripper))()
+					vaule.Parent = workspace
 				end
-				local vaule = Instance.new("BoolValue", workspace)
-				vaule.Name = "vauke"
-				vaule.Value = true
-				loadstring(game:HttpGet(ENTITY_URLS.Ripper))()
-			elseif selectedEntity == "Cease" then
-				if workspace:FindFirstChild("Multiper") or workspace:FindFirstChild("Multiilence") or workspace:FindFirstChild("MultiGod") or workspace:FindFirstChild("MultiBound") then
-					if workspace:FindFirstChild("Multiper") then
-						workspace.MultiMoving:Destroy()
-					else
-						warn("noone")
-					end
-					if workspace:FindFirstChild("Multiilence") then
-						workspace.Multiilence:Destroy()
-					else
-						warn("noone")
-					end
-					if workspace:FindFirstChild("MultiGod") then
-						workspace.MultiGod:Destroy()
-						if workspace:FindFirstChild("Your") then
-							workspace.Your:Destroy()
-						else
-							warn("NOMUCISCDEERGODINTOHEAVENM")
-						end
-					else
-						warn("noone")
-					end
-					if workspace:FindFirstChild("MultiBound") then
-						workspace.MultiBound:Destroy()
-					else
-						warn("noone")
-					end
-					A60Change()
-					loadstring(game:HttpGet(ENTITY_URLS.Cease))()
-				else
-					local vaule = Instance.new("BoolValue", workspace)
-					vaule.Name = "vauke"
-					vaule.Value = true
-					loadstring(game:HttpGet(ENTITY_URLS.Cease))()
-				end
-				local vaule = Instance.new("BoolValue", workspace)
-				vaule.Name = "vauke"
-				vaule.Value = true
-				loadstring(game:HttpGet(ENTITY_URLS.Cease))()
-			elseif selectedEntity == "Bounder" then
-				if workspace:FindFirstChild("Multiper") or workspace:FindFirstChild("Multiilence") or workspace:FindFirstChild("MultiGod") or workspace:FindFirstChild("MultiMoving") then
-					if workspace:FindFirstChild("Multiper") then
-						workspace.MultiMoving:Destroy()
-					else
-						warn("noone")
-					end
-					if workspace:FindFirstChild("Multiilence") then
-						workspace.Multiilence:Destroy()
-					else
-						warn("noone")
-					end
-					if workspace:FindFirstChild("MultiGod") then
-						workspace.MultiGod:Destroy()
-						if workspace:FindFirstChild("Your") then
-							workspace.Your:Destroy()
-						else
-							warn("NOMUCISCDEERGODINTOHEAVENM")
-						end
-					else
-						warn("noone")
-					end
-					if workspace:FindFirstChild("MultiMoving") then
-						workspace.MultiBound:Destroy()
-					else
-						warn("noone")
-					end
-					A60Change()
-					loadstring(game:HttpGet(ENTITY_URLS.Cease))()
-				else
-					local vaule = Instance.new("BoolValue", workspace)
-					vaule.Name = "vauke"
-					vaule.Value = true
-					loadstring(game:HttpGet(ENTITY_URLS.Rebound))()
-				end
-			elseif selectedEntity == "Silence" then
-				if workspace:FindFirstChild("Multiper") or workspace:FindFirstChild("MultiBound") or workspace:FindFirstChild("MultiGod") or workspace:FindFirstChild("MultiMoving") then
-					if workspace:FindFirstChild("Multiper") then
-						workspace.MultiMoving:Destroy()
-					else
-						warn("noone")
-					end
-					if workspace:FindFirstChild("MultiBound") then
-						workspace.Multiilence:Destroy()
-					else
-						warn("noone")
-					end
-					if workspace:FindFirstChild("MultiGod") then
-						workspace.MultiGod:Destroy()
-						if workspace:FindFirstChild("Your") then
-							workspace.Your:Destroy()
-						else
-							warn("NOMUCISCDEERGODINTOHEAVENM")
-						end
-					else
-						warn("noone")
-					end
-					if workspace:FindFirstChild("MultiMoving") then
-						workspace.MultiBound:Destroy()
-					else
-						warn("noone")
-					end
-					A60Change()
-					loadstring(game:HttpGet(ENTITY_URLS.Silence))()
-				else
-					local vaule = Instance.new("BoolValue", workspace)
-					vaule.Name = "vauke"
-					vaule.Value = true
-					loadstring(game:HttpGet(ENTITY_URLS.Silence))()
-				end
+
+				loadstring(game:HttpGet(url))()
 			end
 		end)
 	end
@@ -639,189 +507,55 @@ local function Phase2()
 				local rng = Random.new(seed + (spawnStepP2 * 1000))
 				local selectedEntity = SelectRandomEntity(rng)
 
-				if selectedEntity == "Deer God" then
-					if workspace:FindFirstChild("MultiMoving") or workspace:FindFirstChild("Multiilence") or workspace:FindFirstChild("Multiper") or workspace:FindFirstChild("MultiBound") then
-						if workspace:FindFirstChild("MultiMoving") then
-							workspace.MultiMoving:Destroy()
-						else
-							warn("noone")
+				local ENTITY_URLS_MAP = {
+					["Deer God"] = ENTITY_URLS.Deer,
+					["Ripper"]   = ENTITY_URLS.Ripper,
+					["Cease"]    = ENTITY_URLS.Cease,
+					["Bounder"]  = ENTITY_URLS.Rebound,
+					["Silence"]  = ENTITY_URLS.Silence
+				}
+
+				local url = ENTITY_URLS_MAP[selectedEntity]
+
+				if url then
+					local targets = {"MultiMoving", "Multiilence", "Multiper", "MultiBound", "MultiGod"}
+					local hasAny = false
+
+					for _, name in ipairs(targets) do
+						if workspace:FindFirstChild(name) then
+							hasAny = true
+							break
 						end
-						if workspace:FindFirstChild("Multiilence") then
-							workspace.Multiilence:Destroy()
-						else
-							warn("noone")
-						end
-						if workspace:FindFirstChild("Multiper") then
-							workspace.Multiper:Destroy()
-						else
-							warn("noone")
-						end
-						if workspace:FindFirstChild("MultiBound") then
-							workspace.MultiBound:Destroy()
-						else
-							warn("noone")
-						end
-						A60Change()
-						SafePlayJumpscare()
-						loadstring(game:HttpGet(ENTITY_URLS.Deer))()
-					else
-						local vaule = Instance.new("BoolValue", workspace)
-						vaule.Name = "vauke"
-						vaule.Value = true
-						loadstring(game:HttpGet(ENTITY_URLS.Deer))()
 					end
-				elseif selectedEntity == "Ripper" then
-					if workspace:FindFirstChild("MultiMoving") or workspace:FindFirstChild("Multiilence") or workspace:FindFirstChild("MultiGod") or workspace:FindFirstChild("MultiBound") then
-						if workspace:FindFirstChild("MultiMoving") then
-							workspace.MultiMoving:Destroy()
-						else
-							warn("noone")
-						end
-						if workspace:FindFirstChild("Multiilence") then
-							workspace.Multiilence:Destroy()
-						else
-							warn("noone")
-						end
-						if workspace:FindFirstChild("MultiGod") then
-							workspace.MultiGod:Destroy()
-							if workspace:FindFirstChild("Your") then
-								workspace.Your:Destroy()
+
+					if hasAny then
+						for _, name in ipairs(targets) do
+							local child = workspace:FindFirstChild(name)
+							if child then
+								child:Destroy()
+								if name == "MultiGod" then
+									local your = workspace:FindFirstChild("Your")
+									if your then
+										your:Destroy()
+									else
+										warn("NOMUCISCDEERGODINTOHEAVENM")
+									end
+								end
 							else
-								warn("NOMUCISCDEERGODINTOHEAVENM")
+								warn("noone")
 							end
-						else
-							warn("noone")
-						end
-						if workspace:FindFirstChild("MultiBound") then
-							workspace.MultiBound:Destroy()
-						else
-							warn("noone")
 						end
 						A60Change()
 						SafePlayJumpscare()
-						loadstring(game:HttpGet(ENTITY_URLS.Ripper))()
 					else
-						local vaule = Instance.new("BoolValue", workspace)
+						
+						local vaule = Instance.new("BoolValue")
 						vaule.Name = "vauke"
 						vaule.Value = true
-						loadstring(game:HttpGet(ENTITY_URLS.Ripper))()
+						vaule.Parent = workspace
 					end
-					local vaule = Instance.new("BoolValue", workspace)
-					vaule.Name = "vauke"
-					vaule.Value = true
-					loadstring(game:HttpGet(ENTITY_URLS.Ripper))()
-				elseif selectedEntity == "Cease" then
-					if workspace:FindFirstChild("Multiper") or workspace:FindFirstChild("Multiilence") or workspace:FindFirstChild("MultiGod") or workspace:FindFirstChild("MultiBound") then
-						if workspace:FindFirstChild("Multiper") then
-							workspace.MultiMoving:Destroy()
-						else
-							warn("noone")
-						end
-						if workspace:FindFirstChild("Multiilence") then
-							workspace.Multiilence:Destroy()
-						else
-							warn("noone")
-						end
-						if workspace:FindFirstChild("MultiGod") then
-							workspace.MultiGod:Destroy()
-							if workspace:FindFirstChild("Your") then
-								workspace.Your:Destroy()
-							else
-								warn("NOMUCISCDEERGODINTOHEAVENM")
-							end
-						else
-							warn("noone")
-						end
-						if workspace:FindFirstChild("MultiBound") then
-							workspace.MultiBound:Destroy()
-						else
-							warn("noone")
-						end
-						A60Change()
-						SafePlayJumpscare()
-						loadstring(game:HttpGet(ENTITY_URLS.Cease))()
-					else
-						local vaule = Instance.new("BoolValue", workspace)
-						vaule.Name = "vauke"
-						vaule.Value = true
-						loadstring(game:HttpGet(ENTITY_URLS.Cease))()
-					end
-					local vaule = Instance.new("BoolValue", workspace)
-					vaule.Name = "vauke"
-					vaule.Value = true
-					loadstring(game:HttpGet(ENTITY_URLS.Cease))()
-				elseif selectedEntity == "Bounder" then
-					if workspace:FindFirstChild("Multiper") or workspace:FindFirstChild("Multiilence") or workspace:FindFirstChild("MultiGod") or workspace:FindFirstChild("MultiMoving") then
-						if workspace:FindFirstChild("Multiper") then
-							workspace.MultiMoving:Destroy()
-						else
-							warn("noone")
-						end
-						if workspace:FindFirstChild("Multiilence") then
-							workspace.Multiilence:Destroy()
-						else
-							warn("noone")
-						end
-						if workspace:FindFirstChild("MultiGod") then
-							workspace.MultiGod:Destroy()
-							if workspace:FindFirstChild("Your") then
-								workspace.Your:Destroy()
-							else
-								warn("NOMUCISCDEERGODINTOHEAVENM")
-							end
-						else
-							warn("noone")
-						end
-						if workspace:FindFirstChild("MultiMoving") then
-							workspace.MultiBound:Destroy()
-						else
-							warn("noone")
-						end
-						A60Change()
-						SafePlayJumpscare()
-						loadstring(game:HttpGet(ENTITY_URLS.Cease))()
-					else
-						local vaule = Instance.new("BoolValue", workspace)
-						vaule.Name = "vauke"
-						vaule.Value = true
-						loadstring(game:HttpGet(ENTITY_URLS.Rebound))()
-					end
-				elseif selectedEntity == "Silence" then
-					if workspace:FindFirstChild("Multiper") or workspace:FindFirstChild("MultiBound") or workspace:FindFirstChild("MultiGod") or workspace:FindFirstChild("MultiMoving") then
-						if workspace:FindFirstChild("Multiper") then
-							workspace.MultiMoving:Destroy()
-						else
-							warn("noone")
-						end
-						if workspace:FindFirstChild("MultiBound") then
-							workspace.Multiilence:Destroy()
-						else
-							warn("noone")
-						end
-						if workspace:FindFirstChild("MultiGod") then
-							workspace.MultiGod:Destroy()
-							if workspace:FindFirstChild("Your") then
-								workspace.Your:Destroy()
-							else
-								warn("NOMUCISCDEERGODINTOHEAVENM")
-							end
-						else
-							warn("noone")
-						end
-						if workspace:FindFirstChild("MultiMoving") then
-							workspace.MultiBound:Destroy()
-						else
-							warn("noone")
-						end
-						A60Change()
-						SafePlayJumpscare()
-						loadstring(game:HttpGet(ENTITY_URLS.Silence))()
-					else
-						local vaule = Instance.new("BoolValue", workspace)
-						vaule.Name = "vauke"
-						vaule.Value = true
-						loadstring(game:HttpGet(ENTITY_URLS.Silence))()
-					end
+
+					loadstring(game:HttpGet(url))()
 				end
 			end)
 		end

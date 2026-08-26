@@ -1,4 +1,5 @@
 -- \\ Services // --
+-- this orgin by xynixyi
 
 local HttpService = game:GetService("HttpService")
 local Players = game:GetService("Players")
@@ -66,6 +67,7 @@ local function DecodeConfig(): OwnedAchievements
 	return success and result or {}
 end
 
+-- Hàm tạo chuỗi ngẫu nhiên cho hiệu ứng nhiễu chữ
 local GLITCH_CHARS = "[]{}0(0*#21!@#$%^&*()_+-=/<>?:;10"
 local function GenerateGlitchText(length: number): string
 	local str = ""
@@ -76,6 +78,7 @@ local function GenerateGlitchText(length: number): string
 	return str
 end
 
+-- Tối ưu Glitch Overlay bằng cách dùng Object Pool (tái sử dụng Frame thay vì tạo/xóa liên tục)
 local function ApplyGlitchOverlay(parentFrame, originalTitle, originalDesc)
 	task.spawn(function()
 		local titleLabel, descLabel
@@ -97,32 +100,33 @@ local function ApplyGlitchOverlay(parentFrame, originalTitle, originalDesc)
 		overlayContainer.ZIndex = 100
 		overlayContainer.Parent = parentFrame
 
-		for i = 1, 5 do
-			local createdBars = {}
+		local barPool = {}
+		for b = 1, 5 do
+			local bar = Instance.new("Frame")
+			bar.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+			bar.BorderSizePixel = 0
+			bar.ZIndex = 101
+			bar.Visible = false
+			bar.Parent = overlayContainer
+			table.insert(barPool, bar)
+		end
 
-			for b = 1, math.random(1, 2) do
-				local bar = Instance.new("Frame")
-				bar.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-				bar.BorderSizePixel = 0
-				bar.Size = UDim2.new(math.random(30, 95) / 100, 0, math.random(10, 35) / 100, 0)
-				bar.Position = UDim2.new(math.random(0, 40) / 100, 0, math.random(10, 75) / 100, 0)
-				bar.ZIndex = 101
-				bar.Parent = overlayContainer
-				table.insert(createdBars, bar)
+		for i = 1, 4 do
+			local numActive = math.random(2, 4)
+			for b, bar in ipairs(barPool) do
+				if b <= numActive then
+					bar.Size = UDim2.new(math.random(30, 95) / 100, 0, math.random(10, 35) / 100, 0)
+					bar.Position = UDim2.new(math.random(0, 40) / 100, 0, math.random(10, 75) / 100, 0)
+					bar.Visible = true
+				else
+					bar.Visible = false
+				end
 			end
 
-			if titleLabel then
-				titleLabel.Text = GenerateGlitchText(#originalTitle)
-			end
-			if descLabel then
-				descLabel.Text = GenerateGlitchText(#originalDesc)
-			end
+			if titleLabel then titleLabel.Text = GenerateGlitchText(#originalTitle) end
+			if descLabel then descLabel.Text = GenerateGlitchText(#originalDesc) end
 
-			task.wait(math.random(4, 8) / 100)
-
-			for _, bar in ipairs(createdBars) do
-				bar:Destroy()
-			end
+			task.wait(0.06)
 		end
 
 		if titleLabel then titleLabel.Text = originalTitle end
@@ -130,7 +134,6 @@ local function ApplyGlitchOverlay(parentFrame, originalTitle, originalDesc)
 		overlayContainer:Destroy()
 	end)
 end
-
 
 Module.CheckOwned = function(self, identifier: string): boolean
 	return table.find(DecodeConfig(), identifier) ~= nil
@@ -181,31 +184,39 @@ Module.Grant = function(self, achievementConfig: AchievementConfig, options: Opt
 		Modules.Achievements[name] = achievement
 
 		local connection
-		connection = PlayerGui.DescendantAdded:Connect(function(descendant)
-			if descendant:IsA("Frame") or descendant:IsA("CanvasGroup") then
-				task.spawn(function()
-					task.wait(0.05)
+		local applied = false
 
-					for _, item in ipairs(descendant:GetDescendants()) do
-						if item:IsA("UIStroke") then
-							item.Color = Color3.fromRGB(255, 0, 0)
-						elseif item:IsA("TextLabel") then
-							local textLower = item.Text:lower()
-							if textLower:find("unlock") or textLower:find("achievement") or item.Name:lower():find("header") then
-								item.TextColor3 = Color3.fromRGB(255, 0, 0)
-							end
+		connection = PlayerGui.DescendantAdded:Connect(function(descendant)
+			if applied then return end
+
+			if (descendant:IsA("Frame") or descendant:IsA("CanvasGroup")) and (descendant.Name:lower():find("achievement") or descendant:FindFirstChild("Title", true)) then
+				applied = true
+				if connection then
+					connection:Disconnect()
+					connection = nil
+				end
+
+				task.wait(0.03)
+
+				for _, item in ipairs(descendant:GetDescendants()) do
+					if item:IsA("UIStroke") then
+						item.Color = Color3.fromRGB(255, 0, 0)
+					elseif item:IsA("TextLabel") then
+						local textLower = item.Text:lower()
+						if textLower:find("unlock") or textLower:find("achievement") or item.Name:lower():find("header") then
+							item.TextColor3 = Color3.fromRGB(255, 0, 0)
 						end
 					end
+				end
 
-					ApplyGlitchOverlay(descendant, achievement.Title, achievement.Desc)
-				end)
+				ApplyGlitchOverlay(descendant, achievement.Title, achievement.Desc)
 			end
 		end)
 
 		Modules:AchievementUnlock(name)
 		Modules.Achievements[name] = nil
 
-		task.delay(2.5, function()
+		task.delay(1.5, function()
 			if connection then
 				connection:Disconnect()
 			end

@@ -1,88 +1,9 @@
-							local nottarget = workspace:WaitForChild("vauke")
-							nottarget:Destroy()
+local nottarget = workspace:WaitForChild("vauke")
+nottarget:Destroy()
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local localPlayer = Players.LocalPlayer
-
-function light(tim,color0,color1)
-	local tweenservice = game:GetService("TweenService")
-	local info = TweenInfo.new(tim,Enum.EasingStyle.Linear)
-	for _ , light in pairs(game.Workspace.CurrentRooms:GetDescendants()) do
-		if light:IsA("Light") or light:IsA("SurfaceLight") or light:IsA("SpotLight") then
-			local target = {Color = color1}
-			local anim = tweenservice:Create(light,info,target)
-			anim:Play()
-		end
-		if light:IsA("MeshPart") and light.Material == Enum.Material.Neon  and light.Name ~= "Skybox" then
-			local target1 = {Color = color0}
-			local anim2 = tweenservice:Create(light,info,target1)
-			anim2:Play()
-		end
-	end
-end
-local playergui = localPlayer:WaitForChild("PlayerGui")
-
-local function GetGitSound(GithubSnd, SoundName)
-	local url = GithubSnd
-	if not isfile(SoundName .. ".mp3") then
-		writefile(SoundName .. ".mp3", game:HttpGet(url))
-	end
-	local sound = Instance.new("Sound")
-	sound.SoundId = (getcustomasset or getsynasset)(SoundName .. ".mp3")
-	return sound
-end
-
-light(2,Color3.fromRGB(255, 0, 120),Color3.fromRGB(255, 0, 80))
-task.spawn(function()
-	local is = true
-	
-	local jumpscare = GetGitSound("https://github.com/eoyoustme/Impossible/blob/main/Lhouijie%20Almendras%20-%20Ripper_a60%20-%201786206833758%202026-08-08%2020_33.mp3?raw=true","ripperwhenhimgetgodmode")
-	jumpscare.Parent = workspace
-	jumpscare.Volume = 10
-	jumpscare:Play()
-	
-	local disto = Instance.new("DistortionSoundEffect")
-	disto.Level = 0.75
-	disto.Parent = jumpscare
-	
-	local pitch = Instance.new("PitchShiftSoundEffect")
-	pitch.Level = 0.75
-	pitch.Parent = jumpscare
-	
-	local sound51 = Instance.new("Sound")
-	sound51.PlaybackSpeed = 1
-	sound51.Volume = 10
-	sound51.SoundId = "rbxassetid://1318185544"
-	sound51.Parent = workspace
-	sound51:Play()
-	
-	task.spawn(function()
-		while is do
-			wait(Random.new():NextNumber(0.125,0.25))
-			sound51.PlaybackSpeed = Random.new():NextNumber(0.5,1)
-		end
-	end)
-
-	local pitch2 = Instance.new("PitchShiftSoundEffect")
-	pitch2.Octave = 0.8
-	pitch2.Parent = sound51
-
-	local pitch23 = Instance.new("PitchShiftSoundEffect")
-	pitch23.Octave = 0.5
-	pitch23.Parent = sound51
-
-	local eq = Instance.new("EqualizerSoundEffect")
-	eq.LowGain = -20
-	eq.MidGain = -10
-	eq.Parent = sound51
-	wait(8)
-	is = false
-	jumpscare:Destroy()
-	sound51:Destroy()
-end)
-
-wait(6)
 
 ---====== Load spawner ======---
 
@@ -114,7 +35,7 @@ local entity = Spawner:Create({
 	},
 	Movement = {
 		Speed = 215,
-		Delay = 0,
+		Delay = 6,
 		Reversed = false
 	},
 	Rebounding = {
@@ -146,6 +67,83 @@ local entity = Spawner:Create({
 
 entity:SetCallback("OnSpawned", function()
 	print("Entity has spawned")
+	function light(tim,color0,color1)
+		local tweenservice = game:GetService("TweenService")
+		local info = TweenInfo.new(tim,Enum.EasingStyle.Linear)
+		for _ , light in pairs(game.Workspace.CurrentRooms:GetDescendants()) do
+			if light:IsA("Light") or light:IsA("SurfaceLight") or light:IsA("SpotLight") then
+				local target = {Color = color1}
+				local anim = tweenservice:Create(light,info,target)
+				anim:Play()
+			end
+			if light:IsA("MeshPart") and light.Material == Enum.Material.Neon  and light.Name ~= "Skybox" then
+				local target1 = {Color = color0}
+				local anim2 = tweenservice:Create(light,info,target1)
+				anim2:Play()
+			end
+		end
+	end
+	local playergui = localPlayer:WaitForChild("PlayerGui")
+
+	local function GetGitSound(GithubSnd, SoundName)
+		local url = GithubSnd
+		if not isfile(SoundName .. ".mp3") then
+			writefile(SoundName .. ".mp3", game:HttpGet(url))
+		end
+		local sound = Instance.new("Sound")
+		sound.SoundId = (getcustomasset or getsynasset)(SoundName .. ".mp3")
+		return sound
+	end
+
+	light(2,Color3.fromRGB(255, 0, 120),Color3.fromRGB(255, 0, 80))
+	task.spawn(function()
+		local is = true
+
+		local jumpscare = GetGitSound("https://github.com/eoyoustme/Impossible/blob/main/Lhouijie%20Almendras%20-%20Ripper_a60%20-%201786206833758%202026-08-08%2020_33.mp3?raw=true","ripperwhenhimgetgodmode")
+		jumpscare.Parent = workspace
+		jumpscare.Volume = 10
+		jumpscare:Play()
+
+		local disto = Instance.new("DistortionSoundEffect")
+		disto.Level = 0.75
+		disto.Parent = jumpscare
+
+		local pitch = Instance.new("PitchShiftSoundEffect")
+		pitch.Level = 0.75
+		pitch.Parent = jumpscare
+
+		local sound51 = Instance.new("Sound")
+		sound51.PlaybackSpeed = 1
+		sound51.Volume = 10
+		sound51.SoundId = "rbxassetid://1318185544"
+		sound51.Parent = workspace
+		sound51:Play()
+
+		task.spawn(function()
+			while is do
+				wait(Random.new():NextNumber(0.125,0.25))
+				sound51.PlaybackSpeed = Random.new():NextNumber(0.5,1)
+			end
+		end)
+
+		local pitch2 = Instance.new("PitchShiftSoundEffect")
+		pitch2.Octave = 0.8
+		pitch2.Parent = sound51
+
+		local pitch23 = Instance.new("PitchShiftSoundEffect")
+		pitch23.Octave = 0.5
+		pitch23.Parent = sound51
+
+		local eq = Instance.new("EqualizerSoundEffect")
+		eq.LowGain = -20
+		eq.MidGain = -10
+		eq.Parent = sound51
+		wait(8)
+		is = false
+		jumpscare:Destroy()
+		sound51:Destroy()
+	end)
+
 end)
 
 entity:SetCallback("OnStartMoving", function()
@@ -436,7 +434,7 @@ entity:SetCallback("OnEnterRoom", function(room: Model, firstTime: boolean)
 				end
 
 				task.wait(2)
-				
+
 				TweenService:Create(
 					entity.Model:FindFirstChildWhichIsA("BasePart", true),
 					TweenInfo.new(3, Enum.EasingStyle.Quad, Enum.EasingDirection.In),

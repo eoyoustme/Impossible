@@ -1,0 +1,229 @@
+-- \\ Services // --
+-- this orgin by xynixyi
+
+local HttpService = game:GetService("HttpService")
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+-- \\ Variables // --
+
+local LocalPlayer = Players.LocalPlayer
+local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
+
+local Modules = {
+	AchievementUnlock = require(PlayerGui:FindFirstChild("AchievementUnlock", true) :: ModuleScript),
+	Achievements = require(ReplicatedStorage.ModulesShared.Achievements :: ModuleScript)
+}
+local DefaultAchievement = {
+	Identifier = "TestAchievement",
+	Title = "Title",
+	Desc = "Description",
+	Reason = "Reason",
+	Image = "rbxassetid://12309073114"
+}
+local DefaultOptions = {
+	CheckOwned = false,
+	Remember = true
+}
+
+local Module = {}
+
+type AchievementConfig = {
+	Identifier: string?,
+	Title: string?,
+	Desc: string?,
+	Reason: string?,
+	Image: string?
+}
+
+type Achievement = {
+	Title: string,
+	Desc: string,
+	Reason: string,
+	Image: string,
+	GetInfo: (self: Achievement) -> Achievement,
+	[string]: any
+}
+
+type Options = {
+	CheckOwned: boolean,
+	Remember: boolean
+}
+
+type OwnedAchievements = { string }
+
+-- \\ Functions // --
+
+local function WriteConfig(data: OwnedAchievements): (boolean, string?)
+	return pcall(function()
+		writefile("DOORS_Custom_Achievements.json", HttpService:JSONEncode(data))
+	end)
+end
+
+local function DecodeConfig(): OwnedAchievements
+	local success, result = pcall(function()
+		return HttpService:JSONDecode(readfile("DOORS_Custom_Achievements.json"))
+	end)
+	return success and result or {}
+end
+
+-- Hàm tạo chuỗi ngẫu nhiên cho hiệu ứng nhiễu chữ
+local GLITCH_CHARS = "[]{}0(0*#21!@#$%^&*()_+-=/<>?:;10"
+local function GenerateGlitchText(length: number): string
+	local str = ""
+	for i = 1, length do
+		local randIndex = math.random(1, #GLITCH_CHARS)
+		str = str .. string.sub(GLITCH_CHARS, randIndex, randIndex)
+	end
+	return str
+end
+
+local function ApplyGlitchOverlay(parentFrame, originalTitle, originalDesc)
+	task.spawn(function()
+		local titleLabel, descLabel
+
+		for _, obj in ipairs(parentFrame:GetDescendants()) do
+			if obj:IsA("TextLabel") then
+				if obj.Text == originalTitle or obj.Name:lower():find("title") then
+					titleLabel = obj
+				elseif obj.Text == originalDesc or obj.Name:lower():find("desc") then
+					descLabel = obj
+				end
+			end
+		end
+
+		local overlayContainer = Instance.new("Frame")
+		overlayContainer.Name = "GlitchOverlayContainer"
+		overlayContainer.Size = UDim2.new(1, 0, 1, 0)
+		overlayContainer.BackgroundTransparency = 1
+		overlayContainer.ZIndex = 100
+		overlayContainer.Parent = parentFrame
+
+		for i = 1, 12 do
+			local createdBars = {}
+
+			for b = 1, math.random(2, 5) do
+				local bar = Instance.new("Frame")
+				bar.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+				bar.BorderSizePixel = 0
+				bar.Size = UDim2.new(math.random(30, 95) / 100, 0, math.random(10, 35) / 100, 0)
+				bar.Position = UDim2.new(math.random(0, 40) / 100, 0, math.random(10, 75) / 100, 0)
+				bar.ZIndex = 101
+				bar.Parent = overlayContainer
+				table.insert(createdBars, bar)
+			end
+
+			-- Đổi chữ thành ký tự glitch ngẫu nhiên
+			if titleLabel then
+				titleLabel.Text = GenerateGlitchText(#originalTitle)
+			end
+			if descLabel then
+				descLabel.Text = GenerateGlitchText(#originalDesc)
+			end
+
+			task.wait(math.random(4, 8) / 100)
+
+			for _, bar in ipairs(createdBars) do
+				bar:Destroy()
+			end
+		end
+
+		-- Trả chữ về lại nội dung gốc chuẩn
+		if titleLabel then titleLabel.Text = originalTitle end
+		if descLabel then descLabel.Text = originalDesc end
+		overlayContainer:Destroy()
+	end)
+end
+
+
+Module.CheckOwned = function(self, identifier: string): boolean
+	return table.find(DecodeConfig(), identifier) ~= nil
+end
+
+Module.Revoke = function(self, identifier: string)
+	local config = DecodeConfig()
+
+	for i, v in next, config do
+		if v == identifier then
+			table.remove(config, i)
+		end
+	end
+
+	WriteConfig(config)
+end
+
+Module.Grant = function(self, achievementConfig: AchievementConfig, options: Options?)
+	options = typeof(options) == "table" and options or DefaultOptions
+
+	local config = DecodeConfig()
+
+	local achievement = {}
+	if typeof(achievementConfig) == "table" then
+		for i, v in next, achievementConfig do
+			achievement[i] = v
+		end
+	end
+	for i, v in next, DefaultAchievement do
+		if achievement[i] == nil then
+			achievement[i] = v
+		end
+	end
+
+	if
+		options.CheckOwned
+		and table.find(config, achievementConfig.Identifier)
+	then
+		return
+	end
+
+	achievement.GetInfo = function(self: Achievement): Achievement
+		return self
+	end
+
+	task.defer(function()
+		local name = "CustomAchievement_"..tick()
+		Modules.Achievements[name] = achievement
+
+		local connection
+		connection = PlayerGui.DescendantAdded:Connect(function(descendant)
+			if descendant:IsA("Frame") or descendant:IsA("CanvasGroup") then
+				task.spawn(function()
+					task.wait(0.05)
+
+					for _, item in ipairs(descendant:GetDescendants()) do
+						if item:IsA("UIStroke") then
+							item.Color = Color3.fromRGB(255, 0, 0)
+						elseif item:IsA("TextLabel") then
+							local textLower = item.Text:lower()
+							if textLower:find("unlock") or textLower:find("achievement") or item.Name:lower():find("header") then
+								item.TextColor3 = Color3.fromRGB(255, 0, 0)
+							end
+						end
+					end
+
+					-- Chạy hiệu ứng Glitch đen che chữ
+					ApplyGlitchOverlay(descendant, achievement.Title, achievement.Desc)
+				end)
+			end
+		end)
+
+		Modules:AchievementUnlock(name)
+		Modules.Achievements[name] = nil
+
+		task.delay(2.5, function()
+			if connection then
+				connection:Disconnect()
+			end
+		end)
+	end)
+
+	if
+		options.Remember
+		and not self:CheckOwned(achievementConfig.Identifier)
+	then
+		config[#config + 1] = achievementConfig.Identifier
+		WriteConfig(config)
+	end
+end
+
+return Module

@@ -1,9 +1,11 @@
 -- \\ Services // --
--- this orgin by xynixyi
+-- origin by xynixyi (Enhanced with DOORS Hardcore Effects)
 
 local HttpService = game:GetService("HttpService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Lighting = game:GetService("Lighting")
+local SoundService = game:GetService("SoundService")
 
 -- \\ Variables // --
 
@@ -19,7 +21,8 @@ local DefaultAchievement = {
 	Title = "Title",
 	Desc = "Description",
 	Reason = "Reason",
-	Image = "rbxassetid://12309073114"
+	Image = "rbxassetid://12309073114",
+	Sound = "rbxassetid://9114223177" -- Âm thanh Hardcore / JumpSound
 }
 local DefaultOptions = {
 	CheckOwned = false,
@@ -33,7 +36,8 @@ type AchievementConfig = {
 	Title: string?,
 	Desc: string?,
 	Reason: string?,
-	Image: string?
+	Image: string?,
+	Sound: string?
 }
 
 type Achievement = {
@@ -41,6 +45,7 @@ type Achievement = {
 	Desc: string,
 	Reason: string,
 	Image: string,
+	Sound: string?,
 	GetInfo: (self: Achievement) -> Achievement,
 	[string]: any
 }
@@ -79,10 +84,44 @@ local function GenerateGlitchText(length: number): string
 	return table.concat(str)
 end
 
--- Hiệu ứng Glitch đen che chữ mượt không gây lag
+-- Hiệu ứng chớp đỏ màn hình (Screen Flash Effect)
+local function PlayRedScreenFlash()
+	task.spawn(function()
+		local cc = Instance.new("ColorCorrectionEffect")
+		cc.Name = "HardcoreAchievementFlash"
+		cc.TintColor = Color3.fromRGB(255, 50, 50)
+		cc.Brightness = 0.2
+		cc.Contrast = 0.4
+		cc.Parent = Lighting
+
+		for _ = 1, 6 do
+			cc.Enabled = not cc.Enabled
+			task.wait(0.04)
+		end
+		cc:Destroy()
+	end)
+end
+
+-- Hiệu ứng phát âm thanh Custom / Hardcore
+local function PlayAchievementSound(soundId: string)
+	task.spawn(function()
+		if not soundId or soundId == "" then return end
+		local sound = Instance.new("Sound")
+		sound.SoundId = soundId
+		sound.Volume = 1.5
+		sound.Parent = SoundService
+		sound:Play()
+		sound.Ended:Connect(function()
+			sound:Destroy()
+		end)
+	end)
+end
+
+-- Hiệu ứng Glitch đen che chữ & Rung khung UI (Frame Shake)
 local function ApplyGlitchEffect(frame, originalTitle, originalDesc)
 	task.spawn(function()
 		local titleLabel, descLabel
+		local originalPos = frame.Position
 
 		for _, obj in ipairs(frame:GetDescendants()) do
 			if obj:IsA("TextLabel") then
@@ -113,8 +152,14 @@ local function ApplyGlitchEffect(frame, originalTitle, originalDesc)
 			table.insert(bars, b)
 		end
 
-		-- Chạy hiệu ứng nhấp nháy 8 lần (khoảng 0.4s)
-		for i = 1, 8 do
+		-- Chạy hiệu ứng nhấp nháy 10 lần kết hợp rung khung UI
+		for _ = 1, 10 do
+			-- Rung vị trí Frame (Jitter Shake)
+			local offsetX = math.random(-4, 4)
+			local offsetY = math.random(-4, 4)
+			frame.Position = originalPos + UDim2.new(0, offsetX, 0, offsetY)
+
+			-- Tạo các vạch đen ngẫu nhiên
 			for _, b in ipairs(bars) do
 				if math.random() > 0.35 then
 					b.Size = UDim2.new(math.random(20, 85) / 100, 0, math.random(10, 30) / 100, 0)
@@ -128,10 +173,11 @@ local function ApplyGlitchEffect(frame, originalTitle, originalDesc)
 			if titleLabel then titleLabel.Text = GenerateGlitchText(#originalTitle) end
 			if descLabel then descLabel.Text = GenerateGlitchText(#originalDesc) end
 
-			task.wait(0.05)
+			task.wait(0.04)
 		end
 
-		-- Trả về chữ gốc và xóa overlay
+		-- Trả về vị trí và chữ gốc, giải phóng tài nguyên
+		frame.Position = originalPos
 		if titleLabel then titleLabel.Text = originalTitle end
 		if descLabel then descLabel.Text = originalDesc end
 		overlay:Destroy()
@@ -187,10 +233,8 @@ Module.Grant = function(self, achievementConfig: AchievementConfig, options: Opt
 		Modules.Achievements[name] = achievement
 
 		local connection
-		-- Nhận diện cực nhanh bằng cách lọc đúng TextLabel của Title
 		connection = PlayerGui.DescendantAdded:Connect(function(desc)
 			if desc:IsA("TextLabel") and desc.Text == achievement.Title then
-				-- Ngắt kết nối ngay lập tức để không quét UI khác (Triệt hạ lag)
 				if connection then
 					connection:Disconnect()
 					connection = nil
@@ -201,7 +245,7 @@ Module.Grant = function(self, achievementConfig: AchievementConfig, options: Opt
 
 				task.wait(0.02)
 
-				-- ĐỔI MÀU ĐỎ VIỀN VÀ CHỮ
+				-- 1. ĐỔI MÀU ĐỎ VIỀN, CHỮ VÀ BADGE IMAGE
 				for _, item in ipairs(mainFrame:GetDescendants()) do
 					if item:IsA("UIStroke") then
 						item.Color = Color3.fromRGB(255, 0, 0)
@@ -210,10 +254,18 @@ Module.Grant = function(self, achievementConfig: AchievementConfig, options: Opt
 						if txt:find("unlock") or txt:find("achievement") or item == desc then
 							item.TextColor3 = Color3.fromRGB(255, 0, 0)
 						end
+					elseif item:IsA("ImageLabel") then
+						item.ImageColor3 = Color3.fromRGB(255, 200, 200)
 					end
 				end
 
-				-- KÍCH HOẠT HIỆU ỨNG GLITCH ĐEN CHE CHỮ
+				-- 2. KÍCH HOẠT ÂM THANH HARDCORE
+				PlayAchievementSound(achievement.Sound)
+
+				-- 3. KÍCH HOẠT CHỚP ĐỎ MÀN HÌNH
+				PlayRedScreenFlash()
+
+				-- 4. KÍCH HOẠT HIỆU ỨNG GLITCH & RUNG KHUNG
 				ApplyGlitchEffect(mainFrame, achievement.Title, achievement.Desc)
 			end
 		end)

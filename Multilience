@@ -366,7 +366,7 @@ local function GetGitSound(GithubSnd, SoundName)
 	return sound
 end
 
-local githubSound = GetGitSound("https://github.com/eoyoustme/Impossible/blob/main/Lhouijie%20Almendras%20-%20Multimonster_silence_scream%20-%201786119426713%202026-08-07%2020_17%20(1).mp3?raw=true", "SilenceGithubSound")
+local githubSound = GetGitSound("https://github.com/eoyoustme/Impossible/blob/main/Lhouijie%20Almendras%20-%20Multimonster_silence_scream%20-%201786119426713%202026-08-07%2020_17%20(1).mp3?raw=true", "Supergaymanquocka")
 githubSound.Volume = 5
 githubSound.RollOffMinDistance = 50
 githubSound.RollOffMaxDistance = 100

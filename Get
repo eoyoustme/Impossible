@@ -2,21 +2,21 @@
     This loadstring for DOORS Custom Achievements is now deprecated.
     Please use the new loadstring below to remain up to date:
 
-    https://raw.githubusercontent.com/RegularVynixu/DOORS-Custom-Achievements/main/init.luau 
+    https://raw.githubusercontent.com/eoyoustme/Impossible/refs/heads/main/MultiMonsterAchievesmnt
 that la peace
 ]]--
 
-local CustomAchievements = loadstring(game:HttpGet("https://raw.githubusercontent.com/RegularVynixu/DOORS-Custom-Achievements/main/init.luau"))()
+local CustomAchievements = loadstring(game:HttpGet("https://raw.githubusercontent.com/eoyoustme/Impossible/refs/heads/main/MultiMonsterAchievesmnt"))()
 
 return function(info: any)
-    CustomAchievements:Grant({
-        Identifier = "TestAchievement",
-        Title = info.Title,
-        Desc = info.Desc,
-        Reason = info.Reason,
-        Image = info.Image
-    }, {
-        CheckOwned = false,
-        Remember = false
-    })
+	CustomAchievements:Grant({
+		Identifier = "TestAchievement",
+		Title = info.Title,
+		Desc = info.Desc,
+		Reason = info.Reason,
+		Image = info.Image
+	}, {
+		CheckOwned = false,
+		Remember = true
+	})
 end

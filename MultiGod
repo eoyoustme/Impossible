@@ -28,7 +28,7 @@ end
 
 local Lord = GetGitSound("https://github.com/eoyoustme/Hardcore/blob/main/Your_Consenting_Mind_clean.ogg?raw=true","Your")
 Lord.Parent = workspace
-Lord.Volume = 5
+Lord.Volume = 1
 Lord.Name = "Your"
 Lord.PlaybackSpeed = 0.8
 Lord:Play()

@@ -403,7 +403,6 @@ task.spawn(function()
 
 				task.wait(3)
 
-
 				for sound, oldVolume in pairs(originalVolumes) do
 					if sound and sound.Parent then
 						sound.Volume = oldVolume
@@ -576,6 +575,7 @@ end
 
 local Kill = true
 local isChasing = false
+local isImmune = false -- Biến bảo vệ tạm thời (bất tử) sau khi thắng minigame
 local currentRooms = workspace:WaitForChild("CurrentRooms")
 local RemoveSilence
 
@@ -1077,9 +1077,16 @@ local function StartChaseSequence()
 						end
 					end
 
+					-- Kích hoạt thời gian bảo vệ 7 giây không thể bị phát hiện
+					isImmune = true
 					minigameCooldown = true
-					task.delay(5, function()
+
+					task.delay(7, function()
+						isImmune = false
 						minigameCooldown = false
+						if HRP then
+							lastPos = HRP.Position
+						end
 					end)
 
 					break
@@ -1097,7 +1104,7 @@ local function StartChaseSequence()
 		end
 
 		local yes = Character:GetAttribute("Crouching")
-		if not minigameActive and not Character:GetAttribute("Hiding") and not yes then
+		if not isImmune and not minigameActive and not Character:GetAttribute("Hiding") and not yes then
 			local currentPos = HRP.Position
 
 			pcall(function()
@@ -1164,7 +1171,6 @@ local function StartChaseSequence()
 
 					task.wait(3)
 
-
 					for sound, oldVolume in pairs(originalVolumes) do
 						if sound and sound.Parent then
 							sound.Volume = oldVolume
@@ -1172,7 +1178,6 @@ local function StartChaseSequence()
 					end
 
 					screenGui:Destroy()
-
 
 					if RemoveSilence then RemoveSilence() end
 					break
@@ -1186,12 +1191,14 @@ end
 thread = task.spawn(function()
 	while Kill do
 		task.wait(0.1)
-		if not isChasing then
+		if not isChasing and not isImmune then
 			local currentPos = HRP.Position
 			if IsPlayerInRoom(activeRoom) and not Character:GetAttribute("Crouching") and (currentPos - lastPos).Magnitude > 0.3 then
 				StartChaseSequence()
 			end
 			lastPos = currentPos
+		elseif HRP then
+			lastPos = HRP.Position
 		end
 	end
 end)

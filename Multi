@@ -205,7 +205,7 @@ local function A60Change()
 			Earthquake = { Enabled = false },
 			Spawned = { ChangeColorWhenSpawn = false, Rainbow = false, Color = Color3.fromRGB(0, 85, 255) },
 			CameraShake = { Enabled = true, Range = 100, Values = {1.5, 20, 0.1, 1} },
-			Movement = { Speed = 300, SpeedFast = 1300, MoveFastNotEnter = true, Delay = 0, Reversed = true, EndWhenEnterLatestRoom = false, EndDelay = 0 },
+			Movement = { Speed = 300, SpeedFast = 1300, MoveFastNotEnter = true, Delay = 0, Reversed = true, IsMoveWhenWHere = true, EndWhenEnterLatestRoom = false, EndDelay = 0 },
 			Jumpscare = { Enabled = false },
 			Rebounding = { Enabled = false },
 			Damage = { Enabled = false },
@@ -457,8 +457,10 @@ a = task.spawn(function()
 
 				if hasAny then
 					for _, name in ipairs(targets) do
+						task.spawn(function()
 						local child = workspace:FindFirstChild(name)
 						if child then
+							wait(4)
 							child:Destroy()
 							if name == "MultiGod" then
 								local your = workspace:FindFirstChild("Your")
@@ -471,6 +473,7 @@ a = task.spawn(function()
 						else
 							warn("noone")
 						end
+						end)
 					end
 					A60Change()
 				else
@@ -486,10 +489,12 @@ a = task.spawn(function()
 	end
 end)
 
+local isphase2 = true
+
 local function Phase2()
 	task.spawn(function()
 		local spawnStepP2 = 0
-		while true do
+		while isphase2 do
 			task.wait(supera)
 
 			pcall(function()
@@ -518,7 +523,7 @@ local function Phase2()
 				local url = ENTITY_URLS_MAP[selectedEntity]
 
 				if url then
-					local targets = {"MultiMoving", "Multiilence", "Multiper", "MultiBound", "MultiGod"}
+					local targets = {"Multimoving", "Multiilence", "Multiper", "MultiBound", "MultiGod"}
 					local hasAny = false
 
 					for _, name in ipairs(targets) do
@@ -530,8 +535,10 @@ local function Phase2()
 
 					if hasAny then
 						for _, name in ipairs(targets) do
+							task.spawn(function()
 							local child = workspace:FindFirstChild(name)
 							if child then
+								wait(4)
 								child:Destroy()
 								if name == "MultiGod" then
 									local your = workspace:FindFirstChild("Your")
@@ -544,11 +551,13 @@ local function Phase2()
 							else
 								warn("noone")
 							end
+							end)
 						end
+						wait(3.8)
 						A60Change()
 						SafePlayJumpscare()
 					else
-						
+
 						local vaule = Instance.new("BoolValue")
 						vaule.Name = "vauke"
 						vaule.Value = true
@@ -593,6 +602,7 @@ task.spawn(function()
 		if game.ReplicatedStorage:FindFirstChild("GameData") and game.ReplicatedStorage.GameData:FindFirstChild("LatestRoom") then
 			game.ReplicatedStorage.GameData.LatestRoom.Changed:Wait()
 			roomCount = roomCount + 1
+
 			task.spawn(function()
 				local successRate = math.random(50, 100) 
 				if math.random(1, 100) <= successRate then
@@ -638,14 +648,12 @@ task.spawn(function()
 				tv.TextScaled = true
 				tv.Font = Enum.Font.SourceSansBold
 				tv.Parent = sg
-
-
 			end
 
-			if roomCount >= 5 then
-				local remainingCount = 25 - roomCount
+			if roomCount >= 10 then
+				local remainingCount = math.max(0, 25 - roomCount)
 
-				if tv then
+				if tv and tv.Parent then
 					tv.Text = string.format("A-%02d", remainingCount)
 				end
 			end
@@ -653,16 +661,22 @@ task.spawn(function()
 			supera = math.max(1, supera - 0.5)
 
 			if roomCount >= 25 then
-				if workspace:FindFirstChild("aiHoi") or workspace:FindFirstChild("LaPeace") then
-					workspace.aiHoi:Destroy()
-					workspace.LaPeace:Destroy()
-				end
-				tv:Destroy()
-				if caption and caption.Parent then
-					caption.Parent:Destroy() 
+				local aiHoi = workspace:FindFirstChild("aiHoi")
+				if aiHoi then aiHoi:Destroy() end
+
+				local laPeace = workspace:FindFirstChild("LaPeace")
+				if laPeace then laPeace:Destroy() end
+
+				if tv then
+					tv:Destroy()
+					tv = nil
 				end
 				if sg then
 					sg:Destroy()
+					sg = nil
+				end
+				if caption and caption.Parent then
+					caption.Parent:Destroy() 
 				end
 
 				local bunbo = true
@@ -671,6 +685,9 @@ task.spawn(function()
 					task.cancel(sueo)
 					sueo = nil
 				end
+				
+				isphase2 = false
+
 				task.spawn(function()
 					local playerGui = game.Players.LocalPlayer:WaitForChild("PlayerGui")
 					local Time = 1
@@ -731,7 +748,7 @@ task.spawn(function()
 						Earthquake = { Enabled = false },
 						Spawned = {
 							ChangeColorWhenSpawn = false, 
-							Rainbow = false,              
+							Rainbow = false,               
 							Color = Color3.fromRGB(0, 85, 255)
 						},
 						CameraShake = {

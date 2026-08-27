@@ -77,6 +77,12 @@ local tintTween = nil
 local tintSessionId = 0
 local diedConnection = nil
 
+local Kill = true
+local isChasing = false
+local isImmune = false 
+local Removed = false
+local RemoveSilence = nil
+
 local function StopShake()
 	if shakeConnection then
 		shakeConnection:Disconnect()
@@ -294,14 +300,40 @@ Silence5.Parent = workspace
 local Silence = Silence5:FindFirstChild("RushNew") or Silence5:FindFirstChildWhichIsA("BasePart")
 Silence.Anchored = true
 
+local thread = nil
+
+RemoveSilence = function()
+	if Removed then return end
+	Removed = true
+	Kill = false
+
+	StopMonochromeTint(true)
+	ResetText()
+
+	if thread then
+		task.cancel(thread)
+		thread = nil
+	end
+
+	if Silence5 and Silence5.Parent then
+		Silence5:Destroy()
+	end
+end
+
+-- LẮNG NGHE SỰ CỐ DESTROY TỪ BÊN NGOÀI
+Silence5.Destroying:Connect(function()
+	if not Removed then
+		RemoveSilence()
+	end
+end)
+
+Silence5.AncestryChanged:Connect(function(_, parent)
+	if not parent and not Removed then
+		RemoveSilence()
+	end
+end)
+
 task.spawn(function()
-	local Players = game:GetService("Players")
-	local RunService = game:GetService("RunService")
-	local TweenService = game:GetService("TweenService")
-
-	local player = Players.LocalPlayer
-	local playerGui = player:WaitForChild("PlayerGui")
-
 	local MAX_LOOK_TIME = 8 
 	local lookTimer = 0
 	local glitchTimer = 0
@@ -310,15 +342,15 @@ task.spawn(function()
 	local glitchGui = Instance.new("ScreenGui")
 	glitchGui.Name = "ScreenGlitchEffect"
 	glitchGui.ResetOnSpawn = false
-	glitchGui.Parent = playerGui
+	glitchGui.Parent = PlayerGui
 
 	local function isLookingAtSilence()
-		if not Silence or not Silence.Parent then return false end
+		if not Kill or not Silence5 or not Silence5.Parent or not Silence or not Silence.Parent then return false end
 
 		local currentCamera = workspace.CurrentCamera
 		if not currentCamera then return false end
 
-		local character = player.Character
+		local character = LocalPlayer.Character
 		if not character then return false end
 		local humanoid = character:FindFirstChildOfClass("Humanoid")
 		if not humanoid or humanoid.Health <= 0 then return false end
@@ -354,8 +386,17 @@ task.spawn(function()
 		end
 	end
 
-	RunService.RenderStepped:Connect(function(dt)
-		local character = player.Character
+	local renderConn
+	renderConn = RunService.RenderStepped:Connect(function(dt)
+		if not Kill or not Silence5 or not Silence5.Parent then
+			lookTimer = 0
+			glitchGui:ClearAllChildren()
+			glitchGui:Destroy()
+			if renderConn then renderConn:Disconnect() end
+			return
+		end
+
+		local character = LocalPlayer.Character
 		local humanoid = character and character:FindFirstChildOfClass("Humanoid")
 
 		if not humanoid or humanoid.Health <= 0 then
@@ -376,14 +417,11 @@ task.spawn(function()
 
 			if lookTimer >= MAX_LOOK_TIME then
 				humanoid.Health = 0
-				local Players = game:GetService("Players")
-				local player = Players.LocalPlayer
-				local playergui = player:WaitForChild("PlayerGui")
 
 				local screenGui = Instance.new("ScreenGui")
 				screenGui.Name = "FlashOverlay"
 				screenGui.IgnoreGuiInset = true
-				screenGui.Parent = playergui
+				screenGui.Parent = PlayerGui
 
 				local frame = Instance.new("Frame")
 				frame.Size = UDim2.new(1, 0, 1, 0)
@@ -444,7 +482,6 @@ distantSound.Volume = 4
 distantSound.Parent = workspace
 
 local activeRoom = nil
-
 local is = true
 
 local function ApplyPurpleTextureToRoom(roomObj)
@@ -465,7 +502,7 @@ local function ApplyPurpleTextureToRoom(roomObj)
 					tex.Parent = part
 					table.insert(createdTextures, tex)
 					task.spawn(function()
-						while is do
+						while is and Kill do
 							wait(0.05)
 							tex.StudsPerTileU = Random.new():NextInteger(30,50)
 							tex.StudsPerTileV = Random.new():NextInteger(30,50)
@@ -535,7 +572,7 @@ local function PlayStaticJumpscareUI()
 	local tween = TweenService:Create(imageLabel, info, {ImageTransparency = 1})
 	tween:Play()
 
-	while os.clock() - start < duration do
+	while os.clock() - start < duration and Kill do
 		imageLabel.Image = jumpscareImages[imageIndex]
 		imageIndex = (imageIndex % #jumpscareImages) + 1
 		task.wait(0.03)
@@ -573,11 +610,7 @@ local function FovKit(time, Fov, normalfov)
 	end)
 end
 
-local Kill = true
-local isChasing = false
-local isImmune = false -- Biến bảo vệ tạm thời (bất tử) sau khi thắng minigame
 local currentRooms = workspace:WaitForChild("CurrentRooms")
-local RemoveSilence
 
 task.spawn(function()
 	local latestVal = ReplicatedStorage.GameData.LatestRoom.Value
@@ -585,6 +618,11 @@ task.spawn(function()
 	local isFirstSpawn = true
 
 	while Kill do
+		if not Silence5 or not Silence5.Parent or not Silence or not Silence.Parent then
+			RemoveSilence()
+			break
+		end
+
 		if isChasing then
 			task.wait(0.2)
 		else
@@ -659,7 +697,7 @@ task.spawn(function()
 		end
 	end
 
-	if RemoveSilence and not isChasing then
+	if RemoveSilence and not isChasing and Kill then
 		RemoveSilence()
 	end
 end)
@@ -679,7 +717,6 @@ local function setupHeartbeatUI()
 			downloadedModel.Name = "Heartbeat"
 			downloadedModel.Parent = MainFrame
 			heartbeatFrame = downloadedModel
-		else
 		end
 	end
 	return heartbeatFrame
@@ -877,7 +914,7 @@ local function runSilenceMinigame(beatInterval, beatTimings)
 	end
 
 	for i = 1, targetCount do
-		if not Character:GetAttribute("Hiding") then
+		if not Character:GetAttribute("Hiding") or not Kill then
 			minigameActive = false
 			return false
 		end
@@ -907,7 +944,7 @@ local function runSilenceMinigame(beatInterval, beatTimings)
 
 	local inputConn
 	inputConn = UserInputService.InputBegan:Connect(function(input, gameProcessed)
-		if minigameFinished or not Character:GetAttribute("Hiding") then return end
+		if minigameFinished or not Character:GetAttribute("Hiding") or not Kill then return end
 
 		local isValidInput = false
 		if input.KeyCode == Enum.KeyCode.ButtonA or input.KeyCode == Enum.KeyCode.Space then
@@ -957,7 +994,7 @@ local function runSilenceMinigame(beatInterval, beatTimings)
 		end
 	end)
 
-	while not minigameFinished do
+	while not minigameFinished and Kill do
 		if not Character:GetAttribute("Hiding") then
 			inputConn:Disconnect()
 			minigameActive = false
@@ -1035,14 +1072,15 @@ end
 
 local lastPos = HRP.Position
 local damageInterval = 0.054
-local thread = nil
 
 local function StartChaseSequence()
-	if isChasing then return end
+	if isChasing or not Kill then return end
 	isChasing = true
 
 	StartText(3)
 	task.wait(3)
+
+	if not Kill then return end
 
 	StartMonochromeTint(true)
 	LaunchText(true)
@@ -1051,6 +1089,11 @@ local function StartChaseSequence()
 
 	while Kill and isChasing do
 		task.wait(damageInterval)
+
+		if not Silence5 or not Silence5.Parent or not Silence or not Silence.Parent then
+			RemoveSilence()
+			break
+		end
 
 		if Character:GetAttribute("Hiding") then
 			if currentChaseTween then
@@ -1077,7 +1120,6 @@ local function StartChaseSequence()
 						end
 					end
 
-					-- Kích hoạt thời gian bảo vệ 7 giây không thể bị phát hiện
 					isImmune = true
 					minigameCooldown = true
 
@@ -1144,14 +1186,10 @@ local function StartChaseSequence()
 						ReplicatedStorage.GameStats["Player_".. LocalPlayer.Name].Total.DeathCause.Value = "][p1340!)#(894"
 					end
 
-					local Players = game:GetService("Players")
-					local player = Players.LocalPlayer
-					local playergui = player:WaitForChild("PlayerGui")
-
 					local screenGui = Instance.new("ScreenGui")
 					screenGui.Name = "FlashOverlay"
 					screenGui.IgnoreGuiInset = true
-					screenGui.Parent = playergui
+					screenGui.Parent = PlayerGui
 
 					local frame = Instance.new("Frame")
 					frame.Size = UDim2.new(1, 0, 1, 0)
@@ -1191,6 +1229,11 @@ end
 thread = task.spawn(function()
 	while Kill do
 		task.wait(0.1)
+		if not Silence5 or not Silence5.Parent or not Silence or not Silence.Parent then
+			RemoveSilence()
+			break
+		end
+
 		if not isChasing and not isImmune then
 			local currentPos = HRP.Position
 			if IsPlayerInRoom(activeRoom) and not Character:GetAttribute("Crouching") and (currentPos - lastPos).Magnitude > 0.3 then
@@ -1202,22 +1245,3 @@ thread = task.spawn(function()
 		end
 	end
 end)
-
-local Removed = false
-
-RemoveSilence = function()
-	if Removed then return end
-	Removed = true
-	Kill = false
-
-	StopMonochromeTint()
-
-	if thread then
-		task.cancel(thread)
-		thread = nil
-	end
-
-	if Silence5 and Silence5.Parent then
-		Silence5:Destroy()
-	end
-end

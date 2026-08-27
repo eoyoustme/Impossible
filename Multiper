@@ -99,18 +99,10 @@ entity:SetCallback("OnSpawned", function()
 	task.spawn(function()
 		local is = true
 
-		local jumpscare = GetGitSound("https://github.com/eoyoustme/Impossible/blob/main/Lhouijie%20Almendras%20-%20Ripper_a60%20-%201786206833758%202026-08-08%2020_33.mp3?raw=true","ripperwhenhimgetgodmode")
+		local jumpscare = GetGitSound("https://github.com/eoyoustme/Impossible/blob/main/HnVideoEditor_2026_08_26_185847148.mp3?raw=true","Multimonster_Ripper")
 		jumpscare.Parent = workspace
-		jumpscare.Volume = 10
+		jumpscare.Volume = 5
 		jumpscare:Play()
-
-		local disto = Instance.new("DistortionSoundEffect")
-		disto.Level = 0.75
-		disto.Parent = jumpscare
-
-		local pitch = Instance.new("PitchShiftSoundEffect")
-		pitch.Level = 0.75
-		pitch.Parent = jumpscare
 
 		local sound51 = Instance.new("Sound")
 		sound51.PlaybackSpeed = 1
@@ -122,7 +114,7 @@ entity:SetCallback("OnSpawned", function()
 		task.spawn(function()
 			while is do
 				wait(Random.new():NextNumber(0.125,0.25))
-				sound51.PlaybackSpeed = Random.new():NextNumber(0.5,1)
+				sound51.PlaybackSpeed = Random.new():NextNumber(0.75,1)
 			end
 		end)
 
@@ -270,7 +262,7 @@ entity:SetCallback("OnEnterRoom", function(room: Model, firstTime: boolean)
 	local RunService = game:GetService("RunService")
 	local TweenService = game:GetService("TweenService")
 
-	local entityModel = workspace:FindFirstChild("MultiMonPer")
+	local entityModel = workspace:FindFirstChild("Multiper")
 	local entityRoot = entityModel and (entityModel:FindFirstChild("HumanoidRootPart") or entityModel:FindFirstChildWhichIsA("BasePart")) 
 
 

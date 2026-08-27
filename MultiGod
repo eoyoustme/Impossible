@@ -310,7 +310,7 @@ entity:SetCallback("OnEnterRoom", function(room: Model, firstTime: boolean)
 
 		local s = Instance.new("Sound")
 		s.Volume = 6
-		s.Parent = workspace
+		s.Parent = entity.Model:FindFirstChildWhichIsA("BasePart")
 		s.PlaybackSpeed = 0.8
 
 		if a1 == "Join us" then
@@ -362,17 +362,6 @@ entity:SetCallback("OnDespawning", function()
 		task.cancel(threadB)
 		threadB = nil
 	end
-
-	task.spawn(function()
-		if caption then
-			caption.TextTransparency = 0
-			caption.Visible = true
-
-			local info = TweenInfo.new(5, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut)
-			local tween = TweenService:Create(caption, info, {TextTransparency = 1})
-			tween:Play()
-		end
-	end)
 
 	local anhguoc = player:WaitForChild("PlayerGui")
 	local cac = anhguoc:FindFirstChild("JumpscareOverlay")

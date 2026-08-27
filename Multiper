@@ -376,6 +376,7 @@ entity:SetCallback("OnEnterRoom", function(room: Model, firstTime: boolean)
 					if hiddenPart and hiddenPart:IsA("BasePart") then
 						hiddenPart.Size = Vector3.new(3, 8, 4)
 					end
+
 					local doorClone = doorModel:Clone()
 					doorClone.Name = "DoorClone"
 					doorClone.Parent = doorModel.Parent

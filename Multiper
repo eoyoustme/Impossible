@@ -47,7 +47,7 @@ local entity = Spawner:Create({
 	},
 	Damage = {
 		Enabled = true,
-		Range = 40,
+		Range = 0,
 		Amount = 125
 	},
 	Crucifixion = {
@@ -152,14 +152,15 @@ entity:SetCallback("OnEnterRoom", function(room: Model, firstTime: boolean)
 		task.spawn(function()
 			task.wait(0.05)
 
+			local assetContainer = room:FindFirstChild("Assets") or room
+
+			-- Phát âm thanh vỡ chung của phòng
 			local breakSound = Instance.new("Sound")
 			breakSound.SoundId = "rbxassetid://9114223171"
 			breakSound.Volume = 2.5
-			breakSound.Parent = room:FindFirstChild("Assets") or room
+			breakSound.Parent = assetContainer
 			breakSound:Play()
 			breakSound.Ended:Connect(function() breakSound:Destroy() end)
-
-			local assetContainer = room:FindFirstChild("Assets") or room
 
 			local breakSounds = {
 				"rbxassetid://9125992545",
@@ -170,79 +171,130 @@ entity:SetCallback("OnEnterRoom", function(room: Model, firstTime: boolean)
 				"rbxassetid://2612674531",
 				"rbxassetid://2174790942"
 			}
-			local blacklist = {"wardrobe", "bed", "rug", "key", "drawer", "book", "breaker", "table", "desk", "gold", "dresser"}
 
-			for _, item in pairs(assetContainer:GetChildren()) do
-				if item:IsA("Model") and item.Name ~= "Door" and item.Name ~= "HidingSpots" then
+			local whitelist = {
+				"bookcase", "potted_plant"
+			}
 
-					local isBlacklisted = false
-					local itemNameLower = string.lower(item.Name)
-					for _, word in ipairs(blacklist) do
-						if string.find(itemNameLower, word) then
-							isBlacklisted = true
-							break
+			local blacklist = {
+				"wardrobe", "bed", "rug", "key", "drawer", 
+				"table", "desk", "dresser",  "Curtain",
+				"floor", "door", "hidingspots"
+			}
+
+			local function isWhitelisted(instance)
+				local current = instance
+				while current and current ~= assetContainer and current ~= game do
+					local lowerName = string.lower(current.Name)
+					for _, word in ipairs(whitelist) do
+						if string.find(lowerName, string.lower(word)) then
+							return true
 						end
 					end
+					current = current.Parent
+				end
+				return false
+			end
 
-					if not isBlacklisted then
-						local primary = item.PrimaryPart or item:FindFirstChildWhichIsA("BasePart")
+			local function isBlacklisted(instance)
+				if isWhitelisted(instance) then
+					return false
+				end
 
-						if primary then
-							-- Thread out the model destruction to let parts stagger their sound playbacks
+				local current = instance
+				while current and current ~= assetContainer and current ~= game do
+					local lowerName = string.lower(current.Name)
+					for _, word in ipairs(blacklist) do
+						if string.find(lowerName, string.lower(word)) then
+							return true
+						end
+					end
+					current = current.Parent
+				end
+				return false
+			end
+
+			local processedModels = {}
+
+			for _, descendant in ipairs(assetContainer:GetDescendants()) do
+				if descendant:IsA("BasePart") and not isBlacklisted(descendant) then
+					local parentModel = descendant:FindFirstAncestorOfClass("Model")
+					local targetGroup = parentModel or descendant
+
+					if targetGroup:IsDescendantOf(assetContainer) and not processedModels[targetGroup] then
+						if isWhitelisted(descendant) or not isBlacklisted(targetGroup) then
+							processedModels[targetGroup] = true
+
 							task.spawn(function()
-								for _, v in ipairs(item:GetDescendants()) do
-									if v:IsA("BasePart") then
-										local lowerName = string.lower(v.Name)
+								-- FIX LOCALSCRIPT / EXECUTOR: Clone model sang Client để lấy 100% Physics Ownership lập tức
+								local clientGroup
+								if parentModel then
+									clientGroup = parentModel:Clone()
+									clientGroup.Parent = assetContainer
+									parentModel:Destroy() -- Xóa bản gốc Server ở Client
+								else
+									clientGroup = descendant:Clone()
+									clientGroup.Parent = assetContainer
+									descendant:Destroy()
+								end
 
-										if not string.find(lowerName, "floor") and not string.find(lowerName, "hitbox") then
-											task.wait(math.random(1, 4) / 100)
+								local rootPart
+								local partsInGroup = {}
 
-											local randomSoundId = breakSounds[math.random(1, #breakSounds)]
-
-											local s = Instance.new("Sound")
-											s.SoundId = randomSoundId
-											s.Volume = math.random(7, 12) / 10 
-											s.PlaybackSpeed = math.random(85, 115) / 100
-											s.RollOffMaxDistance = 100
-											s.Parent = v
-											s:Play()
-
-											s.Ended:Connect(function()
-												s:Destroy()
-											end)
-
-											v.Anchored = false
-											v.CanCollide = true 
-
-											v.CustomPhysicalProperties = PhysicalProperties.new(0.01, 0.01, 0.5, 1, 1)
-
-											pcall(function()
-												if v:CanSetNetworkOwnership() then
-													v:SetNetworkOwner(localPlayer)
-												end
-											end)
-
-											v.CFrame = v.CFrame + Vector3.new(0, 0.05, 0)
+								if clientGroup:IsA("Model") then
+									rootPart = clientGroup.PrimaryPart or clientGroup:FindFirstChildWhichIsA("BasePart")
+									for _, part in ipairs(clientGroup:GetDescendants()) do
+										if part:IsA("BasePart") and not isBlacklisted(part) then
+											table.insert(partsInGroup, part)
 										end
 									end
+								elseif clientGroup:IsA("BasePart") then
+									rootPart = clientGroup
+									table.insert(partsInGroup, clientGroup)
 								end
+
+								if not rootPart or #partsInGroup == 0 then return end
+
+								-- 1. Hàn (Weld) tất cả Part vào rootPart
+								for _, part in ipairs(partsInGroup) do
+									if part ~= rootPart then
+										local weld = Instance.new("WeldConstraint")
+										weld.Part0 = rootPart
+										weld.Part1 = part
+										weld.Parent = rootPart
+									end
+								end
+
+								-- 2. Âm thanh vỡ
+								local s = Instance.new("Sound")
+								s.SoundId = breakSounds[math.random(1, #breakSounds)]
+								s.Volume = math.random(12, 24) / 10 
+								s.PlaybackSpeed = math.random(85, 115) / 100
+								s.RollOffMaxDistance = 100
+								s.Parent = rootPart
+								s:Play()
+								s.Ended:Connect(function() s:Destroy() end)
+
+								-- 3. Bật Physics và Unanchor đồng bộ
+								for _, part in ipairs(partsInGroup) do
+									part.CanCollide = true
+									part.CustomPhysicalProperties = PhysicalProperties.new(0.01, 0.01, 0.5, 1, 1)
+									part.CFrame = part.CFrame + Vector3.new(0, 0.05, 0)
+									part.Anchored = false
+								end
+
+								-- 4. Ép lực nổ (Văng ngay lập tức kể cả khi Player ở xa)
+								rootPart.AssemblyLinearVelocity = Vector3.new(
+									math.random(-60, 60),
+									math.random(20, 50),
+									math.random(-60, 60)
+								)
+								rootPart.AssemblyAngularVelocity = Vector3.new(
+									math.random(-25, 25),
+									math.random(-25, 25),
+									math.random(-25, 25)
+								)
 							end)
-
-							primary.Anchored = true
-							task.wait()
-							primary.Anchored = false
-
-							primary.AssemblyLinearVelocity = Vector3.new(
-								math.random(-60, 60),
-								math.random(20, 50),
-								math.random(-60, 60)
-							)
-
-							primary.AssemblyAngularVelocity = Vector3.new(
-								math.random(-25, 25),
-								math.random(-25, 25),
-								math.random(-25, 25)
-							)
 						end
 					end
 				end
@@ -417,11 +469,13 @@ entity:SetCallback("OnEnterRoom", function(room: Model, firstTime: boolean)
 						if promxy:IsA("ProximityPrompt") then
 							promxy:Destroy()
 						else
-							return
+							warn("cucaosc")
 						end
 
 						if obj.Name == "DoorBarrier" or obj.Name == "BarrierTrigger" or obj.Name == "Sign" then
 							obj:Destroy()
+						else
+							warn("coacooasdk")
 						end
 					end
 				end

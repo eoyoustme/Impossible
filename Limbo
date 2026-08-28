@@ -1,3 +1,6 @@
+if workspace:FindFirstChild("IsM") then
+	return
+else
 local TweenService = game:GetService("TweenService")
 local SoundService = game:GetService("SoundService")
 local Lighting = game:GetService("Lighting")
@@ -965,3 +968,4 @@ task.spawn(function()
 	task.wait(80)
 	t.despawn(mockState, 3)
 end)
+end

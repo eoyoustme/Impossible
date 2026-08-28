@@ -1,4 +1,9 @@
 game.ReplicatedStorage.GameData.LatestRoom.Changed:Wait()
+
+local IsM = Instance.new("BoolValue")
+IsM.Name = "IsM"
+IsM.Parent = true
+
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
@@ -389,11 +394,11 @@ local function SafePlayJumpscare()
 end
 
 local entityChances = {
-	{Name = "Cease", Chance = 14.5},
-	{Name = "Ripper", Chance = 15},
-	{Name = "Bounder", Chance = 12},
-	{Name = "Deer God", Chance = 1.5},
-	{Name = "Silence", Chance = 8.5},
+	{Name = "Cease", Chance = 7.5},
+	{Name = "Ripper", Chance = 7.5},
+	{Name = "Bounder", Chance = 6},
+	{Name = "Deer God", Chance = 0.75},
+	{Name = "Silence", Chance = 4.25},
 }
 
 local function SelectRandomEntity(rng)
@@ -458,21 +463,21 @@ a = task.spawn(function()
 				if hasAny then
 					for _, name in ipairs(targets) do
 						task.spawn(function()
-						local child = workspace:FindFirstChild(name)
-						if child then
-							wait(4)
-							child:Destroy()
-							if name == "MultiGod" then
-								local your = workspace:FindFirstChild("Your")
-								if your then
-									your:Destroy()
-								else
-									warn("NOMUCISCDEERGODINTOHEAVENM")
+							local child = workspace:FindFirstChild(name)
+							if child then
+								wait(4)
+								child:Destroy()
+								if name == "MultiGod" then
+									local your = workspace:FindFirstChild("Your")
+									if your then
+										your:Destroy()
+									else
+										warn("NOMUCISCDEERGODINTOHEAVENM")
+									end
 								end
+							else
+								warn("noone")
 							end
-						else
-							warn("noone")
-						end
 						end)
 					end
 					A60Change()
@@ -536,21 +541,21 @@ local function Phase2()
 					if hasAny then
 						for _, name in ipairs(targets) do
 							task.spawn(function()
-							local child = workspace:FindFirstChild(name)
-							if child then
-								wait(4)
-								child:Destroy()
-								if name == "MultiGod" then
-									local your = workspace:FindFirstChild("Your")
-									if your then
-										your:Destroy()
-									else
-										warn("NOMUCISCDEERGODINTOHEAVENM")
+								local child = workspace:FindFirstChild(name)
+								if child then
+									wait(4)
+									child:Destroy()
+									if name == "MultiGod" then
+										local your = workspace:FindFirstChild("Your")
+										if your then
+											your:Destroy()
+										else
+											warn("NOMUCISCDEERGODINTOHEAVENM")
+										end
 									end
+								else
+									warn("noone")
 								end
-							else
-								warn("noone")
-							end
 							end)
 						end
 						wait(3.8)
@@ -612,7 +617,7 @@ task.spawn(function()
 
 			if roomCount == 10 then
 				for _, entity in ipairs(entityChances) do
-					entity.Chance = entity.Chance + math.random(35, 45)
+					entity.Chance = entity.Chance + math.random(70, 90)
 				end
 				supera = math.max(1, supera - 6)
 				TextPhase2lol()
@@ -685,7 +690,7 @@ task.spawn(function()
 					task.cancel(sueo)
 					sueo = nil
 				end
-				
+
 				isphase2 = false
 
 				task.spawn(function()
@@ -782,6 +787,7 @@ task.spawn(function()
 					})
 
 					entity:SetCallback("EndWhenGO", function()
+						IsM:Destroy()
 						local sound = Instance.new("Sound")
 						sound.SoundId = "rbxassetid://1837829565"
 						sound.Parent = workspace

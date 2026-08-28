@@ -619,7 +619,7 @@ task.spawn(function()
 				for _, entity in ipairs(entityChances) do
 					entity.Chance = entity.Chance + math.random(70, 90)
 				end
-				supera = math.max(1, supera - 6)
+				supera = math.max(1, supera - 10)
 				TextPhase2lol()
 				if a then
 					task.cancel(a)

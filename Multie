@@ -15,7 +15,7 @@ end
 local entity = Spawner:Create({
 	Entity = {
 		Name = "Multimoving",
-		Asset = "https://github.com/eoyoustme/Pressure-Skid-Gay-/blob/main/MultiPng.rbxm?raw=true",
+		Asset = "https://github.com/eoyoustme/Impossible/blob/main/CeaseMultimonster.rbxm?raw=true",
 		HeightOffset = -2
 	},
 	Lights = {

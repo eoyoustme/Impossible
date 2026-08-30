@@ -640,7 +640,7 @@ task.spawn(function()
 
 					local tweenDown = TweenService:Create(
 						Silence,
-						TweenInfo.new(1.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+						TweenInfo.new(0.75, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
 						{ CFrame = entrance.CFrame * CFrame.new(0, 2, -35) }
 					)
 					tweenDown:Play()
@@ -664,7 +664,7 @@ task.spawn(function()
 					end
 
 					local targetMaxRoomActually = ReplicatedStorage.GameData.LatestRoom.Value
-					local stayTime = (currentRoomIndex >= targetMaxRoomActually) and 7 or 2
+					local stayTime = (currentRoomIndex >= targetMaxRoomActually) and 7 or 1
 
 					local elapsed = 0
 					while elapsed < stayTime and Kill and not isChasing do
@@ -676,7 +676,7 @@ task.spawn(function()
 					if currentRoomIndex < targetMaxRoom and Kill and not isChasing then
 						local tweenUp = TweenService:Create(
 							Silence,
-							TweenInfo.new(1.5, Enum.EasingStyle.Quad, Enum.EasingDirection.In),
+							TweenInfo.new(0.75, Enum.EasingStyle.Quad, Enum.EasingDirection.In),
 							{ CFrame = entrance.CFrame * CFrame.new(0, 70, -35) }
 						)
 						tweenUp:Play()

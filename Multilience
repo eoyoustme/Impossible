@@ -533,15 +533,16 @@ local function GetGitSound(GithubSnd, SoundName)
 end
 
 local githubSound = GetGitSound("https://github.com/eoyoustme/Impossible/blob/main/Lhouijie%20Almendras%20-%20Multimonster_silence_scream%20-%201786119426713%202026-08-07%2020_17%20(1).mp3?raw=true", "Supergaymanquocka")
-githubSound.Volume = 5
-githubSound.RollOffMinDistance = 50
+githubSound.Volume = 2.6
+githubSound.RollOffMinDistance = 25
 githubSound.RollOffMaxDistance = 100
-githubSound.RollOffMode = Enum.RollOffMode.Inverse
+githubSound.RollOffMode = Enum.RollOffMode.Linear
 githubSound.Parent = Silence
 
-local distantSound = GetGitSound("https://github.com/eoyoustme/Impossible/blob/main/XRecorder_Edited_20260728_01.mp3?raw=true", "Distocac")
-distantSound.Volume = 4
+local distantSound = GetGitSound("https://github.com/eoyoustme/Impossible/blob/main/black_kumuzhi-huge-cinematic-reverb-impact-506132.mp3?raw=true", "Distocac555")
+distantSound.Volume = 2.4
 distantSound.Parent = workspace
+distantSound.Ended:Connect(function() distantSound:Destroy() end)
 
 local activeRoom = nil
 local is = true
@@ -796,13 +797,13 @@ task.spawn(function()
 					local distance = (Silence.Position - HRP.Position).Magnitude
 
 					if distance <= 50 then
-						FovKit(180,70,3)
+						FovKit(120,70,6)
 						task.spawn(supershake)
 					elseif distance >= 100 then
 						task.spawn(CamNear)
 					elseif distance >= 41 and distance <= 99 then
 						task.spawn(supershake)
-						FovKit2(120,70,3)
+						FovKit2(120,70,6)
 					end
 
 					local targetMaxRoomActually = ReplicatedStorage.GameData.LatestRoom.Value
@@ -1298,13 +1299,6 @@ local function StartChaseSequence()
 			if Humanoid.Health > 0 then
 				Silence.Anchored = true
 
-				local s = Instance.new("Sound")
-				s.SoundId = "rbxassetid://7861818231"
-				s.Volume = 0.5
-				s.Parent = workspace
-				s:Play()
-				Debris:AddItem(s, 2)
-
 				local SPEED_STUDS_PER_SECOND = 28
 				local targetCFrame = HRP.CFrame
 				local distance = (targetCFrame.Position - Silence.Position).Magnitude
@@ -1321,7 +1315,7 @@ local function StartChaseSequence()
 
 				local movedUncrouchedInRoom = IsPlayerInRoom(activeRoom) and not Character:GetAttribute("Crouching") and (currentPos - lastPos).Magnitude > 0.3
 
-				if distance <= 9 and movedUncrouchedInRoom then
+				if distance <= 9 then
 					Humanoid.Health = 0
 
 					if ReplicatedStorage:FindFirstChild("GameStats") and ReplicatedStorage.GameStats:FindFirstChild("Player_".. LocalPlayer.Name) then

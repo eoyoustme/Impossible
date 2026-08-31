@@ -1,5 +1,15 @@
 local nottarget = workspace:WaitForChild("vauke")
 nottarget:Destroy()
+local breaksound
+local function GetGitSound(GithubSnd, SoundName)
+	local url = GithubSnd
+	if not isfile(SoundName .. ".mp3") then
+		writefile(SoundName .. ".mp3", game:HttpGet(url))
+	end
+	local sound = Instance.new("Sound")
+	sound.SoundId = (getcustomasset or getsynasset)(SoundName .. ".mp3")
+	return sound
+end
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -31,7 +41,7 @@ local entity = Spawner:Create({
 	CameraShake = {
 		Enabled = true,
 		Range = 100,
-		Values = {10, 27, 0.1, 0.4} -- Magnitude, Roughness, FadeIn, FadeOut
+		Values = {10, 8, 0.1, 0.4} -- Magnitude, Roughness, FadeIn, FadeOut
 	},
 	Movement = {
 		Speed = 215,
@@ -146,173 +156,199 @@ local hasTriggered = false
 local destroyedRooms = {}
 
 entity:SetCallback("OnEnterRoom", function(room: Model, firstTime: boolean)
-if room and not destroyedRooms[room] then
-				-- Kiểm tra nếu Floor là "Archives" thì bỏ qua toàn bộ logic phá hủy bên dưới
-				local gameData = game:GetService("ReplicatedStorage"):FindFirstChild("GameData")
-				local floorValue = gameData and gameData:FindFirstChild("Floor") and gameData.Floor.Value
+	if room and not destroyedRooms[room] then
+		-- Kiểm tra nếu Floor là "Archives" thì bỏ qua toàn bộ logic phá hủy bên dưới
+		local gameData = game:GetService("ReplicatedStorage"):FindFirstChild("GameData")
+		local floorValue = gameData and gameData:FindFirstChild("Floor") and gameData.Floor.Value
 
-				if floorValue == "Archives" then 
-					return 
+		if floorValue == "Archives" then 
+			return 
+		end
+
+		destroyedRooms[room] = true
+
+		task.spawn(function()
+			task.wait(0.05)
+
+			local assetContainer = room:FindFirstChild("Assets") or room
+			local Debris = game:GetService("Debris")
+
+			-- Khởi tạo sound mẫu
+			local soundTemplate = GetGitSound("https://github.com/eoyoustme/Extremely/blob/main/ripper%20breaking%20stuffs%20(1).mp3?raw=true", "RipperBreakStuff")
+			if soundTemplate then
+				soundTemplate.RollOffMaxDistance = 100
+			end
+
+
+			local whitelist = {
+				"bookcase", "potted_plant"
+			}
+
+			local blacklist = {
+				"wardrobe", "bed", "rug", "key", "drawer",
+				"table", "desk", "dresser", "curtain",
+				"floor", "door", "hidingspots", "hidingspot1"
+			}
+
+			-- Kiểm tra xem Instance (Part/MeshPart/Model) hoặc cấp Cha của nó có thuộc Whitelist không
+			local function isWhitelisted(instance)
+				local current = instance
+				while current and current ~= assetContainer and current ~= game do
+					local lowerName = string.lower(current.Name)
+					for _, word in ipairs(whitelist) do
+						if string.find(lowerName, string.lower(word), 1, true) then
+							return true
+						end
+					end
+					current = current.Parent
+				end
+				return false
+			end
+
+			-- Kiểm tra xem bản thân Part/MeshPart HOẶC Model cha chứa nó có tên trong Blacklist không
+			local function isBlacklisted(instance)
+				if isWhitelisted(instance) then
+					return false
 				end
 
-				destroyedRooms[room] = true
-
-				task.spawn(function()
-					task.wait(0.05)
-
-					local assetContainer = room:FindFirstChild("Assets") or room
-
-					-- Phát âm thanh vỡ chung của phòng
-					local breakSound = Instance.new("Sound")
-					breakSound.SoundId = "rbxassetid://9114223171"
-					breakSound.Volume = 2.5
-					breakSound.Parent = assetContainer
-					breakSound:Play()
-					breakSound.Ended:Connect(function() breakSound:Destroy() end)
-
-					local breakSounds = {
-						"rbxassetid://9125992545",
-						"rbxassetid://4004052860",
-						"rbxassetid://7142857558",
-						"rbxassetid://7142843615",
-						"rbxassetid://7142857558",
-						"rbxassetid://2612674531",
-						"rbxassetid://2174790942"
-					}
-
-					local whitelist = {
-						"bookcase", "potted_plant"
-					}
-
-					local blacklist = {
-						"wardrobe", "bed", "rug", "key", "drawer",
-						"table", "desk", "dresser", "curtain",
-						"floor", "door", "hidingspots", "hidingspot1"
-					}
-
-					-- Kiểm tra xem Instance (Part/MeshPart/Model) hoặc cấp Cha của nó có thuộc Whitelist không
-					local function isWhitelisted(instance)
-						local current = instance
-						while current and current ~= assetContainer and current ~= game do
-							local lowerName = string.lower(current.Name)
-							for _, word in ipairs(whitelist) do
-								if string.find(lowerName, string.lower(word), 1, true) then
-									return true
-								end
-							end
-							current = current.Parent
-						end
-						return false
-					end
-
-					-- Kiểm tra xem bản thân Part/MeshPart HOẶC Model cha chứa nó có tên trong Blacklist không
-					local function isBlacklisted(instance)
-						if isWhitelisted(instance) then
-							return false
-						end
-
-						local current = instance
-						while current and current ~= assetContainer and current ~= game do
-							local lowerName = string.lower(current.Name)
-							for _, word in ipairs(blacklist) do
-								if string.find(lowerName, string.lower(word), 1, true) then
-									return true
-								end
-							end
-							current = current.Parent
-						end
-						return false
-					end
-
-					local processedModels = {}
-
-					for _, descendant in ipairs(assetContainer:GetDescendants()) do
-						-- Duyệt tất cả các loại Part (Part, MeshPart, UnionOperation...)
-						if descendant:IsA("BasePart") then
-							-- Nếu Part hoặc Model cha của nó thuộc Blacklist -> Bỏ qua toàn bộ Part con
-							if not isBlacklisted(descendant) then
-								local parentModel = descendant:FindFirstAncestorOfClass("Model")
-								local targetGroup = parentModel or descendant
-
-								if targetGroup:IsDescendantOf(assetContainer) and not processedModels[targetGroup] then
-									processedModels[targetGroup] = true
-
-									task.spawn(function()
-										-- Clone sang Client để lấy physics ownership lập tức
-										local clientGroup
-										if parentModel then
-											clientGroup = parentModel:Clone()
-											clientGroup.Parent = assetContainer
-											parentModel:Destroy() -- Xóa bản gốc Server ở phía Client
-										else
-											clientGroup = descendant:Clone()
-											clientGroup.Parent = assetContainer
-											descendant:Destroy()
-										end
-
-										local rootPart
-										local partsInGroup = {}
-
-										if clientGroup:IsA("Model") then
-											rootPart = clientGroup.PrimaryPart or clientGroup:FindFirstChildWhichIsA("BasePart")
-											for _, part in ipairs(clientGroup:GetDescendants()) do
-												if part:IsA("BasePart") and not isBlacklisted(part) then
-													table.insert(partsInGroup, part)
-												end
-											end
-										elseif clientGroup:IsA("BasePart") then
-											rootPart = clientGroup
-											table.insert(partsInGroup, clientGroup)
-										end
-
-										if not rootPart or #partsInGroup == 0 then return end
-
-										-- 1. Hàn (Weld) tất cả Part vào rootPart
-										for _, part in ipairs(partsInGroup) do
-											if part ~= rootPart then
-												local weld = Instance.new("WeldConstraint")
-												weld.Part0 = rootPart
-												weld.Part1 = part
-												weld.Parent = rootPart
-											end
-										end
-
-										-- 2. Phát âm thanh vỡ
-										local s = Instance.new("Sound")
-										s.SoundId = breakSounds[math.random(1, #breakSounds)]
-										s.Volume = math.random(12, 24) / 10 
-										s.PlaybackSpeed = math.random(85, 115) / 100
-										s.RollOffMaxDistance = 100
-										s.Parent = rootPart
-										s:Play()
-										s.Ended:Connect(function() s:Destroy() end)
-
-										-- 3. Bật Physics và Unanchor đồng bộ
-										for _, part in ipairs(partsInGroup) do
-											part.CanCollide = true
-											part.CustomPhysicalProperties = PhysicalProperties.new(0.01, 0.01, 0.5, 1, 1)
-											part.CFrame = part.CFrame + Vector3.new(0, 0.05, 0)
-											part.Anchored = false
-										end
-
-										-- 4. Ép lực nổ (Văng ngay lập tức kể cả khi Player ở xa)
-										rootPart.AssemblyLinearVelocity = Vector3.new(
-											math.random(-60, 60),
-											math.random(20, 50),
-											math.random(-60, 60)
-										)
-										rootPart.AssemblyAngularVelocity = Vector3.new(
-											math.random(-25, 25),
-											math.random(-25, 25),
-											math.random(-25, 25)
-										)
-									end)
-								end
-							end
+				local current = instance
+				while current and current ~= assetContainer and current ~= game do
+					local lowerName = string.lower(current.Name)
+					for _, word in ipairs(blacklist) do
+						if string.find(lowerName, string.lower(word), 1, true) then
+							return true
 						end
 					end
-				end)
+					current = current.Parent
+				end
+				return false
 			end
+
+			local processedModels = {}
+
+			for _, descendant in ipairs(assetContainer:GetDescendants()) do
+				-- Duyệt tất cả các loại Part (Part, MeshPart, UnionOperation...)
+				if descendant:IsA("BasePart") then
+					-- Nếu Part hoặc Model cha của nó thuộc Blacklist -> Bỏ qua toàn bộ Part con
+					if not isBlacklisted(descendant) then
+						local parentModel = descendant:FindFirstAncestorOfClass("Model")
+						local targetGroup = parentModel or descendant
+
+						if targetGroup:IsDescendantOf(assetContainer) and not processedModels[targetGroup] then
+							processedModels[targetGroup] = true
+
+							task.spawn(function()
+								-- Clone sang Client để lấy physics ownership lập tức
+								local clientGroup
+								if parentModel then
+									clientGroup = parentModel:Clone()
+									clientGroup.Parent = assetContainer
+									parentModel:Destroy() -- Xóa bản gốc Server ở phía Client
+								else
+									clientGroup = descendant:Clone()
+									clientGroup.Parent = assetContainer
+									descendant:Destroy()
+								end
+
+								local rootPart
+								local partsInGroup = {}
+
+								breaksound = soundTemplate:Clone()
+								breaksound.Parent = entity.Model:FindFirstChild("Multi") 
+								breaksound.Volume = Random.new():NextNumber(0,10)		
+								breaksound.RollOffMinDistance = Random.new():NextNumber(0,10)
+								breaksound:Play()
+								Debris:AddItem(breaksound, Random.new():NextNumber(0,1))
+
+								if clientGroup:IsA("Model") then
+									rootPart = clientGroup.PrimaryPart or clientGroup:FindFirstChildWhichIsA("BasePart")
+									for _, part in ipairs(clientGroup:GetDescendants()) do
+										if part:IsA("BasePart") and not isBlacklisted(part) then
+											table.insert(partsInGroup, part)
+										end
+									end
+								elseif clientGroup:IsA("BasePart") then
+									rootPart = clientGroup
+									table.insert(partsInGroup, clientGroup)
+								end
+
+								if not rootPart or #partsInGroup == 0 then return end
+
+								for _, part in ipairs(partsInGroup) do
+									if part ~= rootPart then
+										local weld = Instance.new("WeldConstraint")
+										weld.Part0 = rootPart
+										weld.Part1 = part
+										weld.Parent = rootPart
+									end
+								end
+
+								-- 3. Bật Physics và Unanchor đồng bộ
+								for _, part in ipairs(partsInGroup) do
+									part.CanCollide = true
+									part.CustomPhysicalProperties = PhysicalProperties.new(0.01, 0.01, 0.5, 1, 1)
+									part.CFrame = part.CFrame + Vector3.new(0, 0.05, 0)
+									part.Anchored = false
+								end
+
+								-- 4. Ép lực nổ (Văng ngay lập tức kể cả khi Player ở xa)
+								rootPart.AssemblyLinearVelocity = Vector3.new(
+									math.random(-60, 60),
+									math.random(20, 50),
+									math.random(-60, 60)
+								)
+								rootPart.AssemblyAngularVelocity = Vector3.new(
+									math.random(-25, 25),
+									math.random(-25, 25),
+									math.random(-25, 25)
+								)
+							end)
+						end
+					end
+				end
+			end
+		end)
+	end
+	
+	task.spawn(function()
+		local latestRoomNum5 = tostring(game.ReplicatedStorage.GameData.LatestRoom.Value -1 )
+		local latestRoomNum55 = tostring(game.ReplicatedStorage.GameData.LatestRoom.Value -2 )
+		local latestRoomNum555 = tostring(game.ReplicatedStorage.GameData.LatestRoom.Value -3 )
+		if room.Name ~= latestRoomNum5 then
+			task.spawn(function()
+				for i=1 ,10 do
+					for _, descendant in ipairs(breaksound:GetDescendants()) do
+						if descendant:IsA("Sound") then
+							descendant:Destroy()
+						end
+					end
+					wait(0.01)
+				end
+			end)
+		elseif room.Name ~= latestRoomNum55 then
+			task.spawn(function()
+				for i=1 ,10 do
+					for _, descendant in ipairs(breaksound:GetDescendants()) do
+						if descendant:IsA("Sound") then
+							descendant:Destroy()
+						end
+					end
+					wait(0.01)
+				end
+			end)
+		elseif room.Name ~= latestRoomNum555 then
+			task.spawn(function()
+				for i=1 ,10 do
+					for _, descendant in ipairs(breaksound:GetDescendants()) do
+						if descendant:IsA("Sound") then
+							descendant:Destroy()
+						end
+					end
+					wait(0.01)
+				end
+			end)
+		end
+	end)
 
 	local latestRoomNum = tostring(game.ReplicatedStorage.GameData.LatestRoom.Value)
 	if room.Name ~= latestRoomNum then 
@@ -322,6 +358,29 @@ if room and not destroyedRooms[room] then
 	if hasTriggered then 
 		return 
 	end
+	
+	local soundTemplate = GetGitSound("https://github.com/eoyoustme/Extremely/blob/main/ripper%20breaking%20stuffs%20(1).mp3?raw=true", "RipperBreakStuff")
+	if soundTemplate then
+		soundTemplate.RollOffMaxDistance = 100
+	end
+
+	task.spawn(function()
+		for i=1 ,10 do
+			for _, descendant in ipairs(breaksound:GetDescendants()) do
+				if descendant:IsA("Sound") then
+					descendant:Destroy()
+				end
+			end
+			wait(0.01)
+		end
+	end)
+
+	local sound = soundTemplate:Clone()
+	sound.Parent = workspace
+	sound.Volume = 50
+	sound.RollOffMaxDistance = 100
+	sound.RollOffMinDistance = 10
+	sound:Play()
 
 	local RunService = game:GetService("RunService")
 	local TweenService = game:GetService("TweenService")
@@ -351,6 +410,21 @@ if room and not destroyedRooms[room] then
 			end)
 
 			local chance = math.random(1, 1)
+			
+			local function fadeSoundslow(duration)
+				local tweenInfo = TweenInfo.new(duration, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+				local sounds = {}
+
+				if entityModel:IsA("Sound") then table.insert(sounds, entityModel) end
+				for _, desc in ipairs(entityModel:GetDescendants()) do
+					if desc:IsA("Sound") then table.insert(sounds, desc) end
+				end
+
+				for _, sound in ipairs(sounds) do
+					local originalSpeed = sound.PlaybackSpeed
+					TweenService:Create(sound, tweenInfo, {PlaybackSpeed = 0}):Play()
+				end
+			end
 
 			task.spawn(function()
 				local CameraShaker = require(game.ReplicatedStorage.CameraShaker)
@@ -359,6 +433,17 @@ if room and not destroyedRooms[room] then
 				local sound, sound5, sound6, sound7
 
 				if chance == 1 then
+					
+					task.spawn(function()
+						for i=1 ,10 do
+							for _, descendant in ipairs(breaksound) do
+								if descendant:IsA("Sound") then
+									descendant:Destroy()
+								end
+							end
+							wait(0.01)
+						end
+					end)
 
 					local camShake = CameraShaker.new(Enum.RenderPriority.Camera.Value, function(shakeCf)
 						camera.CFrame = camera.CFrame * shakeCf
@@ -373,7 +458,14 @@ if room and not destroyedRooms[room] then
 					sound5.PlaybackSpeed = 1
 					sound5:Play()
 
-					task.wait(3)
+					task.wait(1)
+					local originalCFrame = entityRoot.CFrame
+					
+					local tweenForwardInf5o = TweenInfo.new(6, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
+					local tweenForward5 = TweenService:Create(entityRoot, tweenForwardInf5o, {CFrame = originalCFrame * CFrame.new(0, -100, 0)})
+					tweenForward5:Play()
+					fadeSoundslow(6)
+					wait(6)
 
 				else
 
